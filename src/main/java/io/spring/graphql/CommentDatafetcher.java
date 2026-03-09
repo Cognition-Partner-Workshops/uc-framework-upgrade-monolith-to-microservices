@@ -78,7 +78,8 @@ public class CommentDatafetcher {
               current,
               new CursorPageParameter<>(DateTimeCursor.parse(before), last, Direction.PREV));
     }
-    graphql.relay.PageInfo pageInfo = buildCommentPageInfo(comments);
+    graphql.relay.PageInfo relayPageInfo = buildCommentPageInfo(comments);
+    io.spring.graphql.types.PageInfo pageInfo = buildPageInfo(relayPageInfo);
     CommentsConnection result =
         CommentsConnection.newBuilder()
             .pageInfo(pageInfo)
@@ -109,6 +110,19 @@ public class CommentDatafetcher {
             : new DefaultConnectionCursor(comments.getEndCursor().toString()),
         comments.hasPrevious(),
         comments.hasNext());
+  }
+
+  private io.spring.graphql.types.PageInfo buildPageInfo(graphql.relay.PageInfo relayPageInfo) {
+    return io.spring.graphql.types.PageInfo.newBuilder()
+        .hasPreviousPage(relayPageInfo.isHasPreviousPage())
+        .hasNextPage(relayPageInfo.isHasNextPage())
+        .startCursor(
+            relayPageInfo.getStartCursor() != null
+                ? relayPageInfo.getStartCursor().getValue()
+                : null)
+        .endCursor(
+            relayPageInfo.getEndCursor() != null ? relayPageInfo.getEndCursor().getValue() : null)
+        .build();
   }
 
   private Comment buildCommentResult(CommentData comment) {
