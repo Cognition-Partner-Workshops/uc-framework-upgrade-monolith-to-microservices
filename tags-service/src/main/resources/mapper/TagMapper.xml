@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="io.spring.tags.repository.TagMapper">
+    <select id="allTagNames" resultType="string">
+        select name from tags
+    </select>
+
+    <select id="findByName" resultType="io.spring.tags.model.Tag">
+        select id, name from tags where name = #{name}
+    </select>
+
+    <insert id="insert">
+        insert into tags (id, name) values (#{tag.id}, #{tag.name})
+    </insert>
+</mapper>
