@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "auth-service.fullname" . }}-config
+  labels:
+    {{- include "auth-service.labels" . | nindent 4 }}
+data:
+  DB_HOST: "{{ .Release.Name }}-postgresql"
+  DB_PORT: "5432"
+  DB_NAME: {{ .Values.postgresql.auth.database | quote }}
+  DB_USERNAME: {{ .Values.postgresql.auth.username | quote }}
+  JWT_EXPIRATION: {{ .Values.jwt.expiration | quote }}

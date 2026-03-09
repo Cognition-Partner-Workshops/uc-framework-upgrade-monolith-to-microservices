@@ -1,8 +1,7 @@
-package io.spring.api.security;
+package io.spring.auth.api.security;
 
 import static java.util.Arrays.asList;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,17 +22,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-  @Value("${auth.service.url}")
-  private String authServiceUrl;
-
-  @Bean
-  public RestTemplate restTemplate() {
-    return new RestTemplate();
-  }
-
   @Bean
   public JwtTokenFilter jwtTokenFilter() {
-    return new JwtTokenFilter(restTemplate(), authServiceUrl);
+    return new JwtTokenFilter();
   }
 
   @Bean
@@ -58,13 +48,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .authorizeRequests()
         .antMatchers(HttpMethod.OPTIONS)
         .permitAll()
-        .antMatchers("/graphiql")
+        .antMatchers(HttpMethod.POST, "/users", "/users/login")
         .permitAll()
-        .antMatchers("/graphql")
+        .antMatchers(HttpMethod.GET, "/profiles/**")
         .permitAll()
-        .antMatchers(HttpMethod.GET, "/articles/feed")
-        .authenticated()
-        .antMatchers(HttpMethod.GET, "/articles/**", "/profiles/**", "/tags")
+        .antMatchers(HttpMethod.GET, "/auth/verify")
+        .permitAll()
+        .antMatchers("/actuator/**")
         .permitAll()
         .anyRequest()
         .authenticated();
@@ -77,12 +67,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     final CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(asList("*"));
     configuration.setAllowedMethods(asList("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
-    // setAllowCredentials(true) is important, otherwise:
-    // The value of the 'Access-Control-Allow-Origin' header in the response must not be the
-    // wildcard '*' when the request's credentials mode is 'include'.
     configuration.setAllowCredentials(false);
-    // setAllowedHeaders is important! Without it, OPTIONS preflight request
-    // will fail with 403 Invalid CORS request
     configuration.setAllowedHeaders(asList("Authorization", "Cache-Control", "Content-Type"));
     final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);

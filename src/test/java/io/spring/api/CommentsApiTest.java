@@ -2,7 +2,6 @@ package io.spring.api;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -141,22 +140,30 @@ public class CommentsApiTest extends TestWithCurrentUser {
         .statusCode(204);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void should_get_403_if_not_author_of_article_or_author_of_comment_when_delete_comment()
       throws Exception {
     User anotherUser = new User("other@example.com", "other", "123", "", "");
     when(userRepository.findByUsername(eq(anotherUser.getUsername())))
         .thenReturn(Optional.of(anotherUser));
-    when(jwtService.getSubFromToken(any())).thenReturn(Optional.of(anotherUser.getId()));
-    when(userRepository.findById(eq(anotherUser.getId())))
-        .thenReturn(Optional.ofNullable(anotherUser));
+    when(userRepository.findById(eq(anotherUser.getId()))).thenReturn(Optional.of(anotherUser));
+
+    // Mock auth-service /auth/verify to return anotherUser
+    Map<String, Object> anotherAuthResponse = new HashMap<>();
+    anotherAuthResponse.put("id", anotherUser.getId());
+    anotherAuthResponse.put("username", anotherUser.getUsername());
+    anotherAuthResponse.put("email", anotherUser.getEmail());
+    org.springframework.http.ResponseEntity<Map> anotherVerifyResponse =
+        new org.springframework.http.ResponseEntity<>(
+            anotherAuthResponse, org.springframework.http.HttpStatus.OK);
+    when(restTemplate.getForEntity(anyString(), eq(Map.class))).thenReturn(anotherVerifyResponse);
 
     when(commentRepository.findById(eq(article.getId()), eq(comment.getId())))
         .thenReturn(Optional.of(comment));
-    String token = jwtService.toToken(anotherUser);
-    when(userRepository.findById(eq(anotherUser.getId()))).thenReturn(Optional.of(anotherUser));
+    String anotherToken = "another-token";
     given()
-        .header("Authorization", "Token " + token)
+        .header("Authorization", "Token " + anotherToken)
         .when()
         .delete("/articles/{slug}/comments/{id}", article.getSlug(), comment.getId())
         .then()

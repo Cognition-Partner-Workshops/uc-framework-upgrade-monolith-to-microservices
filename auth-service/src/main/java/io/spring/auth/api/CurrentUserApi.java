@@ -1,12 +1,12 @@
-package io.spring.api;
+package io.spring.auth.api;
 
-import io.spring.application.UserQueryService;
-import io.spring.application.data.UserData;
-import io.spring.application.data.UserWithToken;
-import io.spring.application.user.UpdateUserCommand;
-import io.spring.application.user.UpdateUserParam;
-import io.spring.application.user.UserService;
-import io.spring.core.user.User;
+import io.spring.auth.application.UserQueryService;
+import io.spring.auth.application.data.UserData;
+import io.spring.auth.application.data.UserWithToken;
+import io.spring.auth.application.user.UpdateUserCommand;
+import io.spring.auth.application.user.UpdateUserParam;
+import io.spring.auth.application.user.UserService;
+import io.spring.auth.core.user.User;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.Valid;

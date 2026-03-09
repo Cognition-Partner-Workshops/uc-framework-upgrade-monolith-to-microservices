@@ -1,6 +1,6 @@
-package io.spring.core.user;
+package io.spring.auth.core.user;
 
-import io.spring.Util;
+import io.spring.auth.Util;
 import java.util.UUID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,16 +24,6 @@ public class User {
     this.password = password;
     this.bio = bio;
     this.image = image;
-  }
-
-  /**
-   * Lightweight constructor used when restoring user identity from the auth-service's /auth/verify
-   * response. Only id, email, and username are available from the verification endpoint.
-   */
-  public User(String id, String email, String username) {
-    this.id = id;
-    this.email = email;
-    this.username = username;
   }
 
   public void update(String email, String username, String password, String bio, String image) {

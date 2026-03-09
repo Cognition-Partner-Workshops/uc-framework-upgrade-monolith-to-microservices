@@ -1,44 +1,37 @@
-package io.spring.api.security;
+package io.spring.auth.api.security;
 
-import io.spring.core.user.User;
+import io.spring.auth.core.service.JwtService;
+import io.spring.auth.core.user.UserRepository;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * JWT token filter that delegates token verification to the auth-service via HTTP. Instead of
- * validating tokens locally, this filter calls the auth-service's /auth/verify endpoint to validate
- * tokens and retrieve user information.
- */
+@SuppressWarnings("SpringJavaAutowiringInspection")
 public class JwtTokenFilter extends OncePerRequestFilter {
+  @Autowired private UserRepository userRepository;
+  @Autowired private JwtService jwtService;
   private final String header = "Authorization";
-  private final RestTemplate restTemplate;
-  private final String authServiceUrl;
-
-  public JwtTokenFilter(RestTemplate restTemplate, String authServiceUrl) {
-    this.restTemplate = restTemplate;
-    this.authServiceUrl = authServiceUrl;
-  }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     getTokenString(request.getHeader(header))
+        .flatMap(token -> jwtService.getSubFromToken(token))
         .ifPresent(
-            token -> {
+            id -> {
               if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                verifyTokenWithAuthService(token)
+                userRepository
+                    .findById(id)
                     .ifPresent(
                         user -> {
                           UsernamePasswordAuthenticationToken authenticationToken =
@@ -52,25 +45,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             });
 
     filterChain.doFilter(request, response);
-  }
-
-  @SuppressWarnings("unchecked")
-  private Optional<User> verifyTokenWithAuthService(String token) {
-    try {
-      String url = authServiceUrl + "/auth/verify?token=" + token;
-      org.springframework.http.ResponseEntity<Map> responseEntity =
-          restTemplate.getForEntity(url, Map.class);
-      if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
-        Map<String, Object> body = responseEntity.getBody();
-        String id = (String) body.get("id");
-        String username = (String) body.get("username");
-        String email = (String) body.get("email");
-        return Optional.of(new User(id, email, username));
-      }
-    } catch (Exception e) {
-      // Token verification failed - return empty
-    }
-    return Optional.empty();
   }
 
   private Optional<String> getTokenString(String header) {

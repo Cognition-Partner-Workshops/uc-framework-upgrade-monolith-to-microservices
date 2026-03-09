@@ -1,0 +1,13 @@
+Auth service deployed! Access it via:
+  kubectl port-forward svc/{{ include "auth-service.fullname" . }} 8080:{{ .Values.service.port }}
+Or configure ingress for external access.
+
+Endpoints:
+  POST /users          - Register a new user
+  POST /users/login    - Login (returns JWT)
+  GET  /user           - Get current user (requires JWT)
+  PUT  /user           - Update current user (requires JWT)
+  GET  /profiles/{username}        - Get profile
+  POST /profiles/{username}/follow - Follow user
+  DELETE /profiles/{username}/follow - Unfollow user
+  GET  /auth/verify?token=<jwt>    - Verify JWT token

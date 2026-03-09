@@ -1,11 +1,11 @@
-package io.spring.api;
+package io.spring.auth.api;
 
-import io.spring.api.exception.ResourceNotFoundException;
-import io.spring.application.ProfileQueryService;
-import io.spring.application.data.ProfileData;
-import io.spring.core.user.FollowRelation;
-import io.spring.core.user.User;
-import io.spring.core.user.UserRepository;
+import io.spring.auth.api.exception.ResourceNotFoundException;
+import io.spring.auth.application.ProfileQueryService;
+import io.spring.auth.application.data.ProfileData;
+import io.spring.auth.core.user.FollowRelation;
+import io.spring.auth.core.user.User;
+import io.spring.auth.core.user.UserRepository;
 import java.util.HashMap;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
