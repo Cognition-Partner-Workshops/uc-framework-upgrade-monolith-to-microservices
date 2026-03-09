@@ -1,17 +1,17 @@
-package io.spring.api;
+package io.spring.auth.api;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
-import io.spring.api.exception.InvalidAuthenticationException;
-import io.spring.application.UserQueryService;
-import io.spring.application.data.UserData;
-import io.spring.application.data.UserWithToken;
-import io.spring.application.user.RegisterParam;
-import io.spring.application.user.UserService;
-import io.spring.core.service.JwtService;
-import io.spring.core.user.User;
-import io.spring.core.user.UserRepository;
+import io.spring.auth.api.exception.InvalidAuthenticationException;
+import io.spring.auth.application.UserQueryService;
+import io.spring.auth.application.data.UserData;
+import io.spring.auth.application.data.UserWithToken;
+import io.spring.auth.application.user.RegisterParam;
+import io.spring.auth.application.user.UserService;
+import io.spring.auth.core.service.JwtService;
+import io.spring.auth.core.user.User;
+import io.spring.auth.core.user.UserRepository;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

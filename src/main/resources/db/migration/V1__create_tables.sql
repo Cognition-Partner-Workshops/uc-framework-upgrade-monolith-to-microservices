@@ -1,3 +1,7 @@
+-- NOTE: The 'users' and 'follows' tables are now owned by the auth-service.
+-- They are kept here during the transition period while the monolith still
+-- shares the database. In the future, these tables should be removed from
+-- this migration and managed solely by the auth-service.
 create table users (
   id varchar(255) primary key,
   username varchar(255) UNIQUE,

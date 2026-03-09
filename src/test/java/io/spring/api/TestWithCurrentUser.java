@@ -1,5 +1,6 @@
 package io.spring.api;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -8,14 +9,21 @@ import io.spring.core.service.JwtService;
 import io.spring.core.user.User;
 import io.spring.core.user.UserRepository;
 import io.spring.infrastructure.mybatis.readservice.UserReadService;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 abstract class TestWithCurrentUser {
   @MockBean protected UserRepository userRepository;
 
   @MockBean protected UserReadService userReadService;
+
+  @MockBean protected RestTemplate restTemplate;
 
   protected User user;
   protected UserData userData;
@@ -26,6 +34,7 @@ abstract class TestWithCurrentUser {
 
   @MockBean protected JwtService jwtService;
 
+  @SuppressWarnings("unchecked")
   protected void userFixture() {
     email = "john@jacob.com";
     username = "johnjacob";
@@ -40,6 +49,14 @@ abstract class TestWithCurrentUser {
 
     token = "token";
     when(jwtService.getSubFromToken(eq(token))).thenReturn(Optional.of(user.getId()));
+
+    // Mock the auth-service /auth/verify call used by JwtTokenFilter
+    Map<String, Object> authResponse = new HashMap<>();
+    authResponse.put("id", user.getId());
+    authResponse.put("username", username);
+    authResponse.put("email", email);
+    ResponseEntity<Map> verifyResponse = new ResponseEntity<>(authResponse, HttpStatus.OK);
+    when(restTemplate.getForEntity(anyString(), eq(Map.class))).thenReturn(verifyResponse);
   }
 
   @BeforeEach

@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:auth-db}:${DB_PORT:5432}/${DB_NAME:auth}
+    username: ${DB_USERNAME:auth}
+    password: ${DB_PASSWORD:authpass}
+  flyway:
+    enabled: true
+  jackson:
+    deserialization:
+      UNWRAP_ROOT_VALUE: true
+
+server:
+  port: 8080
+
+image:
+  default: https://static.productionready.io/images/smiley-cyrus.jpg
+
+jwt:
+  secret: ${JWT_SECRET:default-secret-change-me}
+  sessionTime: ${JWT_EXPIRATION:86400}
+
+mybatis:
+  configuration:
+    cache-enabled: true
+    default-statement-timeout: 3000
+    map-underscore-to-camel-case: true
+    use-generated-keys: true
+  type-handlers-package: io.spring.auth.infrastructure.mybatis
+  mapper-locations: mapper/*.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
