@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RealWorld.Application.Pagination;
 using RealWorld.Application.Services;
@@ -40,7 +39,6 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpGet("/articles/feed")]
-    [Authorize]
     public async Task<IActionResult> GetFeed(
         [FromQuery] int offset = 0,
         [FromQuery] int limit = 20)
@@ -52,7 +50,6 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpPost("/articles")]
-    [Authorize]
     public async Task<IActionResult> CreateArticle([FromBody] NewArticleParam param)
     {
         var user = GetUser();

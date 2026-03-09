@@ -15,13 +15,29 @@ public class JwtService : IJwtService
 
     public JwtService(IConfiguration configuration)
     {
-        _secret = configuration["jwt:secret"] ?? throw new ArgumentNullException("jwt:secret configuration is missing");
+        _secret = configuration["jwt:secret"]
+            ?? Environment.GetEnvironmentVariable("JWT_SECRET")
+            ?? throw new ArgumentNullException("jwt:secret configuration or JWT_SECRET env var is missing");
         _sessionTime = int.Parse(configuration["jwt:sessionTime"] ?? "86400");
+    }
+
+    private SymmetricSecurityKey GetSigningKey()
+    {
+        var keyBytes = Encoding.UTF8.GetBytes(_secret);
+        // HS512 requires at least 64 bytes (512 bits). If the secret is shorter,
+        // pad it with zeros to match Java's SecretKeySpec behavior which doesn't validate key length.
+        if (keyBytes.Length < 64)
+        {
+            var padded = new byte[64];
+            Array.Copy(keyBytes, padded, keyBytes.Length);
+            keyBytes = padded;
+        }
+        return new SymmetricSecurityKey(keyBytes);
     }
 
     public string ToToken(User user)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
+        var key = GetSigningKey();
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
         var claims = new[]
@@ -41,8 +57,11 @@ public class JwtService : IJwtService
     {
         try
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
+            var key = GetSigningKey();
             var handler = new JwtSecurityTokenHandler();
+            // Disable automatic claim type mapping so "sub" stays as "sub"
+            // instead of being remapped to ClaimTypes.NameIdentifier
+            handler.InboundClaimTypeMap.Clear();
 
             var parameters = new TokenValidationParameters
             {
@@ -54,7 +73,9 @@ public class JwtService : IJwtService
             };
 
             var principal = handler.ValidateToken(token, parameters, out _);
-            return principal.FindFirst("sub")?.Value;
+            // Try both "sub" and the mapped NameIdentifier claim type
+            return principal.FindFirst("sub")?.Value
+                ?? principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         }
         catch
         {

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RealWorld.Api.Exceptions;
 using RealWorld.Application.Services;
@@ -38,7 +37,6 @@ public class CommentsController : ControllerBase
     }
 
     [HttpPost("/articles/{slug}/comments")]
-    [Authorize]
     public async Task<IActionResult> CreateComment(string slug, [FromBody] NewCommentParam param)
     {
         var article = await _articleRepository.FindBySlugAsync(slug);
@@ -54,7 +52,6 @@ public class CommentsController : ControllerBase
     }
 
     [HttpDelete("/articles/{slug}/comments/{id}")]
-    [Authorize]
     public async Task<IActionResult> DeleteComment(string slug, string id)
     {
         var article = await _articleRepository.FindBySlugAsync(slug);

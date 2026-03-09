@@ -57,11 +57,11 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(255);
         });
 
-        // article_tags join table (no entity, just a shadow table)
+        // article_tags join table
         modelBuilder.Entity<ArticleTag>(entity =>
         {
             entity.ToTable("article_tags");
-            entity.HasNoKey();
+            entity.HasKey(e => new { e.ArticleId, e.TagId });
             entity.Property(e => e.ArticleId).HasColumnName("article_id").HasMaxLength(255);
             entity.Property(e => e.TagId).HasColumnName("tag_id").HasMaxLength(255);
         });
@@ -79,7 +79,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<FollowRelation>(entity =>
         {
             entity.ToTable("follows");
-            entity.HasNoKey();
+            entity.HasKey(e => new { e.UserId, e.TargetId });
             entity.Property(e => e.UserId).HasColumnName("user_id").HasMaxLength(255);
             entity.Property(e => e.TargetId).HasColumnName("follow_id").HasMaxLength(255);
         });

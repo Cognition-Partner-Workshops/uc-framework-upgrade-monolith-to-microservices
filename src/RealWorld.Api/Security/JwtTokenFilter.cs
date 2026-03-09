@@ -32,14 +32,14 @@ public class JwtTokenFilter : IMiddleware
                         // Store user in HttpContext.Items for controller access
                         context.Items["User"] = user;
 
-                        // Also set ClaimsPrincipal for [Authorize] attribute support
+                        // Set ClaimsPrincipal
                         var claims = new[]
                         {
                             new Claim(ClaimTypes.NameIdentifier, user.Id),
                             new Claim(ClaimTypes.Email, user.Email),
                             new Claim(ClaimTypes.Name, user.Username)
                         };
-                        var identity = new ClaimsIdentity(claims, "jwt");
+                        var identity = new ClaimsIdentity(claims, "Bearer");
                         context.User = new ClaimsPrincipal(identity);
                     }
                 }

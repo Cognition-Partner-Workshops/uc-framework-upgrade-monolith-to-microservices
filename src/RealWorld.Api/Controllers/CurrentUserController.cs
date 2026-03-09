@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RealWorld.Application.DTOs;
 using RealWorld.Application.Services;
@@ -9,7 +8,6 @@ using RealWorld.Core.Interfaces;
 namespace RealWorld.Api.Controllers;
 
 [ApiController]
-[Authorize]
 public class CurrentUserController : ControllerBase
 {
     private readonly IUserRepository _userRepository;

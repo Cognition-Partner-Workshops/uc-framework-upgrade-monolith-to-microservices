@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RealWorld.Api.Exceptions;
 using RealWorld.Application.Services;
@@ -36,7 +35,6 @@ public class ArticleController : ControllerBase
     }
 
     [HttpPut("/articles/{slug}")]
-    [Authorize]
     public async Task<IActionResult> UpdateArticle(string slug, [FromBody] UpdateArticleParam param)
     {
         var user = GetUser();
@@ -54,7 +52,6 @@ public class ArticleController : ControllerBase
     }
 
     [HttpDelete("/articles/{slug}")]
-    [Authorize]
     public async Task<IActionResult> DeleteArticle(string slug)
     {
         var user = GetUser();

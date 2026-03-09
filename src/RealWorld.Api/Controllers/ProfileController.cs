@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RealWorld.Api.Exceptions;
 using RealWorld.Application.Services;
@@ -32,7 +31,6 @@ public class ProfileController : ControllerBase
     }
 
     [HttpPost("/profiles/{username}/follow")]
-    [Authorize]
     public async Task<IActionResult> Follow(string username)
     {
         var user = GetUser();
@@ -48,7 +46,6 @@ public class ProfileController : ControllerBase
     }
 
     [HttpDelete("/profiles/{username}/follow")]
-    [Authorize]
     public async Task<IActionResult> Unfollow(string username)
     {
         var user = GetUser();

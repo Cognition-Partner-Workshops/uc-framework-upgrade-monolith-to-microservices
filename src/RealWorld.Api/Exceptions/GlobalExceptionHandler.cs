@@ -12,6 +12,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             ResourceNotFoundException => (HttpStatusCode.NotFound, new { errors = new { body = new[] { exception.Message } } }),
             NoAuthorizationException => (HttpStatusCode.Forbidden, new { errors = new { body = new[] { exception.Message } } }),
+            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, new { errors = new { body = new[] { exception.Message } } }),
             InvalidAuthenticationException => ((HttpStatusCode)422, new { errors = new { body = new[] { exception.Message } } }),
             InvalidOperationException => ((HttpStatusCode)422, new { errors = new { body = new[] { exception.Message } } }),
             _ => (HttpStatusCode.InternalServerError, new { errors = new { body = new[] { "An unexpected error occurred" } } })

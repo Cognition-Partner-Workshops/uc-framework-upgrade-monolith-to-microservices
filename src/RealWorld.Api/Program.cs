@@ -1,9 +1,6 @@
 using System.Data;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using RealWorld.Api.Exceptions;
 using RealWorld.Api.Security;
 using RealWorld.Application.Services;
@@ -51,37 +48,7 @@ builder.Services.AddScoped<UserService>(sp =>
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<JwtTokenFilter>();
 
-var jwtSecret = builder.Configuration["jwt:secret"]
-    ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-    ?? "CHANGE_ME_USE_ENV_VAR_JWT_SECRET_IN_PRODUCTION";
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = key
-        };
-        // Support "Token <jwt>" header format (RealWorld spec)
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var header = context.Request.Headers["Authorization"].FirstOrDefault();
-                if (header != null && header.StartsWith("Token ", StringComparison.OrdinalIgnoreCase))
-                {
-                    context.Token = header[6..].Trim();
-                }
-                return Task.CompletedTask;
-            }
-        };
-    });
-
+// Auth is handled by JwtTokenFilter middleware (no ASP.NET Core JWT Bearer needed)
 builder.Services.AddAuthorization();
 
 // Controllers
@@ -130,8 +97,6 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseExceptionHandler(_ => { });
 app.UseMiddleware<JwtTokenFilter>();
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 app.MapGraphQL();
 
