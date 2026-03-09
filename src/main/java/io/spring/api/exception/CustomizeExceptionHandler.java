@@ -4,8 +4,8 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -51,12 +51,7 @@ public class CustomizeExceptionHandler extends ResponseEntityExceptionHandler {
   public ResponseEntity<Object> handleInvalidAuthentication(
       InvalidAuthenticationException e, WebRequest request) {
     return ResponseEntity.status(UNPROCESSABLE_ENTITY)
-        .body(
-            new HashMap<String, Object>() {
-              {
-                put("message", e.getMessage());
-              }
-            });
+        .body(Map.of("message", e.getMessage()));
   }
 
   @Override
