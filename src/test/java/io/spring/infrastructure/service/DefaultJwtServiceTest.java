@@ -2,7 +2,9 @@ package io.spring.infrastructure.service;
 
 import io.spring.core.service.JwtService;
 import io.spring.core.user.User;
+import java.util.Base64;
 import java.util.Optional;
+import javax.crypto.SecretKey;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +15,10 @@ public class DefaultJwtServiceTest {
 
   @BeforeEach
   public void setUp() {
-    jwtService =
-        new DefaultJwtService("123123123123123123123123123123123123123123123123123123123123", 3600);
+    // Generate a Base64-encoded 512-bit key for HMAC-SHA512 (JJWT 0.12+ minimum key requirement)
+    SecretKey key = io.jsonwebtoken.Jwts.SIG.HS512.key().build();
+    String testSecret = Base64.getEncoder().encodeToString(key.getEncoded());
+    jwtService = new DefaultJwtService(testSecret, 3600);
   }
 
   @Test
