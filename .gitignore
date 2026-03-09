@@ -32,3 +32,10 @@ frontend/.next/
 frontend/out/
 frontend/.env*.local
 frontend/.git/
+
+# .NET build artifacts
+bin/
+obj/
+*.user
+*.suo
+*.db
