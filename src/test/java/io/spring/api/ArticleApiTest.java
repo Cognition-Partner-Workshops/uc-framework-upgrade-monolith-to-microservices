@@ -18,7 +18,7 @@ import io.spring.application.data.ArticleData;
 import io.spring.application.data.ProfileData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +125,7 @@ public class ArticleApiTest extends TestWithCurrentUser {
     String description = "new description";
     Map<String, Object> updateParam = prepareUpdateParam(title, body, description);
 
-    User anotherUser = new User("test@test.com", "test", "123123", "", "");
+    AuthUser anotherUser = new AuthUser("another-user-id", "test", "test@test.com");
 
     Article article =
         new Article(
@@ -147,8 +147,8 @@ public class ArticleApiTest extends TestWithCurrentUser {
             new ProfileData(
                 anotherUser.getId(),
                 anotherUser.getUsername(),
-                anotherUser.getBio(),
-                anotherUser.getImage(),
+                "",
+                "",
                 false));
 
     when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
@@ -191,7 +191,7 @@ public class ArticleApiTest extends TestWithCurrentUser {
     String body = "new body";
     String description = "new description";
 
-    User anotherUser = new User("test@test.com", "test", "123123", "", "");
+    AuthUser anotherUser = new AuthUser("another-user-id", "test", "test@test.com");
 
     Article article =
         new Article(

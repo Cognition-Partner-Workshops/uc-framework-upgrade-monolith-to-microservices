@@ -12,25 +12,29 @@ import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.favorite.ArticleFavorite;
 import io.spring.core.favorite.ArticleFavoriteRepository;
-import io.spring.core.user.FollowRelation;
-import io.spring.core.user.User;
-import io.spring.core.user.UserRepository;
+import io.spring.core.user.AuthUser;
 import io.spring.infrastructure.DbTestBase;
+import io.spring.infrastructure.client.UserServiceClient;
 import io.spring.infrastructure.repository.MyBatisArticleFavoriteRepository;
 import io.spring.infrastructure.repository.MyBatisArticleRepository;
-import io.spring.infrastructure.repository.MyBatisUserRepository;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @Import({
   ArticleQueryService.class,
-  MyBatisUserRepository.class,
   MyBatisArticleRepository.class,
   MyBatisArticleFavoriteRepository.class
 })
@@ -39,17 +43,17 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
   @Autowired private ArticleRepository articleRepository;
 
-  @Autowired private UserRepository userRepository;
-
   @Autowired private ArticleFavoriteRepository articleFavoriteRepository;
 
-  private User user;
+  @MockBean private UserServiceClient userServiceClient;
+
+  private AuthUser user;
   private Article article;
 
   @BeforeEach
   public void setUp() {
-    user = new User("aisensiy@gmail.com", "aisensiy", "123", "", "");
-    userRepository.save(user);
+    user = new AuthUser("user-id-1", "aisensiy", "aisensiy@gmail.com");
+    insertUserRow(user);
     article =
         new Article(
             "test", "desc", "body", Arrays.asList("java", "spring"), user.getId(), new DateTime());
@@ -58,6 +62,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
   @Test
   public void should_fetch_article_success() {
+    when(userServiceClient.isUserFollowing(any(), any())).thenReturn(false);
     Optional<ArticleData> optional = queryService.findById(article.getId(), user);
     Assertions.assertTrue(optional.isPresent());
 
@@ -71,9 +76,9 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
   @Test
   public void should_get_article_with_right_favorite_and_favorite_count() {
-    User anotherUser = new User("other@test.com", "other", "123", "", "");
-    userRepository.save(anotherUser);
+    AuthUser anotherUser = new AuthUser("user-id-2", "other", "other@test.com");
     articleFavoriteRepository.save(new ArticleFavorite(article.getId(), anotherUser.getId()));
+    when(userServiceClient.isUserFollowing(any(), any())).thenReturn(false);
 
     Optional<ArticleData> optional = queryService.findById(article.getId(), anotherUser);
     Assertions.assertTrue(optional.isPresent());
@@ -94,6 +99,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             user.getId(),
             new DateTime().minusHours(1));
     articleRepository.save(anotherArticle);
+    when(userServiceClient.followingAuthors(any(), any())).thenReturn(Collections.emptySet());
 
     ArticleDataList recentArticles =
         queryService.findRecentArticles(null, null, null, new Page(), user);
@@ -118,6 +124,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
             user.getId(),
             new DateTime().minusHours(1));
     articleRepository.save(anotherArticle);
+    when(userServiceClient.followingAuthors(any(), any())).thenReturn(Collections.emptySet());
 
     CursorPager<ArticleData> recentArticles =
         queryService.findRecentArticlesWithCursor(
@@ -144,12 +151,13 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
   @Test
   public void should_query_article_by_author() {
-    User anotherUser = new User("other@email.com", "other", "123", "", "");
-    userRepository.save(anotherUser);
+    AuthUser anotherUser = new AuthUser("user-id-2", "other", "other@email.com");
+    insertUserRow(anotherUser);
 
     Article anotherArticle =
         new Article("new article", "desc", "body", Arrays.asList("test"), anotherUser.getId());
     articleRepository.save(anotherArticle);
+    when(userServiceClient.followingAuthors(any(), any())).thenReturn(Collections.emptySet());
 
     ArticleDataList recentArticles =
         queryService.findRecentArticles(null, user.getUsername(), null, new Page(), user);
@@ -159,8 +167,8 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
   @Test
   public void should_query_article_by_favorite() {
-    User anotherUser = new User("other@email.com", "other", "123", "", "");
-    userRepository.save(anotherUser);
+    AuthUser anotherUser = new AuthUser("user-id-2", "other", "other@email.com");
+    insertUserRow(anotherUser);
 
     Article anotherArticle =
         new Article("new article", "desc", "body", Arrays.asList("test"), anotherUser.getId());
@@ -168,6 +176,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
     ArticleFavorite articleFavorite = new ArticleFavorite(article.getId(), anotherUser.getId());
     articleFavoriteRepository.save(articleFavorite);
+    when(userServiceClient.followingAuthors(any(), any())).thenReturn(Collections.emptySet());
 
     ArticleDataList recentArticles =
         queryService.findRecentArticles(
@@ -185,6 +194,7 @@ public class ArticleQueryServiceTest extends DbTestBase {
     Article anotherArticle =
         new Article("new article", "desc", "body", Arrays.asList("test"), user.getId());
     articleRepository.save(anotherArticle);
+    when(userServiceClient.followingAuthors(any(), any())).thenReturn(Collections.emptySet());
 
     ArticleDataList recentArticles =
         queryService.findRecentArticles("spring", null, null, new Page(), user);
@@ -198,11 +208,10 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
   @Test
   public void should_show_following_if_user_followed_author() {
-    User anotherUser = new User("other@email.com", "other", "123", "", "");
-    userRepository.save(anotherUser);
-
-    FollowRelation followRelation = new FollowRelation(anotherUser.getId(), user.getId());
-    userRepository.saveRelation(followRelation);
+    AuthUser anotherUser = new AuthUser("user-id-2", "other", "other@email.com");
+    insertUserRow(anotherUser);
+    when(userServiceClient.followingAuthors(eq(anotherUser.getId()), any()))
+        .thenReturn(new HashSet<>(Arrays.asList(user.getId())));
 
     ArticleDataList recentArticles =
         queryService.findRecentArticles(null, null, null, new Page(), anotherUser);
@@ -213,11 +222,14 @@ public class ArticleQueryServiceTest extends DbTestBase {
 
   @Test
   public void should_get_user_feed() {
-    User anotherUser = new User("other@email.com", "other", "123", "", "");
-    userRepository.save(anotherUser);
+    AuthUser anotherUser = new AuthUser("user-id-2", "other", "other@email.com");
+    insertUserRow(anotherUser);
 
-    FollowRelation followRelation = new FollowRelation(anotherUser.getId(), user.getId());
-    userRepository.saveRelation(followRelation);
+    when(userServiceClient.followedUsers(eq(user.getId()))).thenReturn(Collections.emptyList());
+    when(userServiceClient.followedUsers(eq(anotherUser.getId())))
+        .thenReturn(Arrays.asList(user.getId()));
+    when(userServiceClient.followingAuthors(eq(anotherUser.getId()), any()))
+        .thenReturn(new HashSet<>(Arrays.asList(user.getId())));
 
     ArticleDataList userFeed = queryService.findUserFeed(user, new Page());
     Assertions.assertEquals(userFeed.getCount(), 0);

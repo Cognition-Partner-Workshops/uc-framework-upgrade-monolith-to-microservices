@@ -17,7 +17,7 @@ import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.comment.Comment;
 import io.spring.core.comment.CommentRepository;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,8 +58,7 @@ public class CommentsApiTest extends TestWithCurrentUser {
             comment.getArticleId(),
             comment.getCreatedAt(),
             comment.getCreatedAt(),
-            new ProfileData(
-                user.getId(), user.getUsername(), user.getBio(), user.getImage(), false));
+            new ProfileData(user.getId(), user.getUsername(), "", "", false));
   }
 
   @Test
@@ -144,19 +143,26 @@ public class CommentsApiTest extends TestWithCurrentUser {
   @Test
   public void should_get_403_if_not_author_of_article_or_author_of_comment_when_delete_comment()
       throws Exception {
-    User anotherUser = new User("other@example.com", "other", "123", "", "");
-    when(userRepository.findByUsername(eq(anotherUser.getUsername())))
-        .thenReturn(Optional.of(anotherUser));
-    when(jwtService.getSubFromToken(any())).thenReturn(Optional.of(anotherUser.getId()));
-    when(userRepository.findById(eq(anotherUser.getId())))
-        .thenReturn(Optional.ofNullable(anotherUser));
+    AuthUser anotherUser = new AuthUser("another-user-id", "other", "other@example.com");
 
     when(commentRepository.findById(eq(article.getId()), eq(comment.getId())))
         .thenReturn(Optional.of(comment));
-    String token = jwtService.toToken(anotherUser);
-    when(userRepository.findById(eq(anotherUser.getId()))).thenReturn(Optional.of(anotherUser));
+
+    // Generate a JWT for anotherUser using the same secret from application.properties
+    javax.crypto.SecretKey signingKey =
+        new javax.crypto.spec.SecretKeySpec(
+            jwtSecret.getBytes(), io.jsonwebtoken.SignatureAlgorithm.HS512.getJcaName());
+    String anotherToken =
+        io.jsonwebtoken.Jwts.builder()
+            .setSubject(anotherUser.getId())
+            .claim("username", anotherUser.getUsername())
+            .claim("email", anotherUser.getEmail())
+            .setExpiration(new java.util.Date(System.currentTimeMillis() + 86400000))
+            .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS512)
+            .compact();
+
     given()
-        .header("Authorization", "Token " + token)
+        .header("Authorization", "Token " + anotherToken)
         .when()
         .delete("/articles/{slug}/comments/{id}", article.getSlug(), comment.getId())
         .then()

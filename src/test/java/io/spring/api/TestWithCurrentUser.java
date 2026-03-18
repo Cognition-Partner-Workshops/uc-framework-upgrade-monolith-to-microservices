@@ -1,45 +1,57 @@
 package io.spring.api;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.spring.application.data.UserData;
+import io.spring.core.user.AuthUser;
+import io.spring.infrastructure.client.UserServiceClient;
+import java.util.Date;
+import java.util.Optional;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.spring.application.data.UserData;
-import io.spring.core.service.JwtService;
-import io.spring.core.user.User;
-import io.spring.core.user.UserRepository;
-import io.spring.infrastructure.mybatis.readservice.UserReadService;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
 abstract class TestWithCurrentUser {
-  @MockBean protected UserRepository userRepository;
+  @MockBean protected UserServiceClient userServiceClient;
 
-  @MockBean protected UserReadService userReadService;
+  @Value("${jwt.secret}")
+  protected String jwtSecret;
 
-  protected User user;
+  protected AuthUser user;
   protected UserData userData;
   protected String token;
   protected String email;
   protected String username;
   protected String defaultAvatar;
 
-  @MockBean protected JwtService jwtService;
-
   protected void userFixture() {
     email = "john@jacob.com";
     username = "johnjacob";
     defaultAvatar = "https://static.productionready.io/images/smiley-cyrus.jpg";
 
-    user = new User(email, username, "123", "", defaultAvatar);
-    when(userRepository.findByUsername(eq(username))).thenReturn(Optional.of(user));
-    when(userRepository.findById(eq(user.getId()))).thenReturn(Optional.of(user));
+    String userId = "user-id-123";
+    user = new AuthUser(userId, username, email);
 
     userData = new UserData(user.getId(), email, username, "", defaultAvatar);
-    when(userReadService.findById(eq(user.getId()))).thenReturn(userData);
+    when(userServiceClient.findUserById(eq(user.getId()))).thenReturn(Optional.of(userData));
+    when(userServiceClient.findUserByUsername(eq(username))).thenReturn(Optional.of(userData));
 
-    token = "token";
-    when(jwtService.getSubFromToken(eq(token))).thenReturn(Optional.of(user.getId()));
+    // Generate a real JWT token so JwtTokenFilter can parse it
+    SecretKey signingKey =
+        new SecretKeySpec(jwtSecret.getBytes(), SignatureAlgorithm.HS512.getJcaName());
+    token =
+        Jwts.builder()
+            .setSubject(userId)
+            .claim("username", username)
+            .claim("email", email)
+            .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+            .signWith(signingKey, SignatureAlgorithm.HS512)
+            .compact();
   }
 
   @BeforeEach
