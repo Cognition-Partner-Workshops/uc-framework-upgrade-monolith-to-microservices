@@ -2,7 +2,7 @@ package io.spring.application.article;
 
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ public class ArticleCommandService {
 
   private ArticleRepository articleRepository;
 
-  public Article createArticle(@Valid NewArticleParam newArticleParam, User creator) {
+  public Article createArticle(@Valid NewArticleParam newArticleParam, AuthUser creator) {
     Article article =
         new Article(
             newArticleParam.getTitle(),

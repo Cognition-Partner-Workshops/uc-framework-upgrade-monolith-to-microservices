@@ -10,7 +10,7 @@ import io.spring.core.article.ArticleRepository;
 import io.spring.core.comment.Comment;
 import io.spring.core.comment.CommentRepository;
 import io.spring.core.service.AuthorizationService;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ public class CommentsApi {
   @PostMapping
   public ResponseEntity<?> createComment(
       @PathVariable("slug") String slug,
-      @AuthenticationPrincipal User user,
+      @AuthenticationPrincipal AuthUser user,
       @Valid @RequestBody NewCommentParam newCommentParam) {
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
@@ -52,7 +52,7 @@ public class CommentsApi {
 
   @GetMapping
   public ResponseEntity getComments(
-      @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+      @PathVariable("slug") String slug, @AuthenticationPrincipal AuthUser user) {
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
     List<CommentData> comments = commentQueryService.findByArticleId(article.getId(), user);
@@ -68,7 +68,7 @@ public class CommentsApi {
   public ResponseEntity deleteComment(
       @PathVariable("slug") String slug,
       @PathVariable("id") String commentId,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal AuthUser user) {
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
     return commentRepository

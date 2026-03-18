@@ -14,7 +14,7 @@ import io.spring.core.article.ArticleRepository;
 import io.spring.core.favorite.ArticleFavorite;
 import io.spring.core.favorite.ArticleFavoriteRepository;
 import io.spring.core.service.AuthorizationService;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import io.spring.graphql.DgsConstants.MUTATION;
 import io.spring.graphql.exception.AuthenticationException;
 import io.spring.graphql.types.ArticlePayload;
@@ -35,7 +35,7 @@ public class ArticleMutation {
   @DgsMutation(field = MUTATION.CreateArticle)
   public DataFetcherResult<ArticlePayload> createArticle(
       @InputArgument("input") CreateArticleInput input) {
-    User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
+    AuthUser user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
     NewArticleParam newArticleParam =
         NewArticleParam.builder()
             .title(input.getTitle())
@@ -55,7 +55,7 @@ public class ArticleMutation {
       @InputArgument("slug") String slug, @InputArgument("changes") UpdateArticleInput params) {
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
-    User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
+    AuthUser user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
     if (!AuthorizationService.canWriteArticle(user, article)) {
       throw new NoAuthorizationException();
     }
@@ -71,7 +71,7 @@ public class ArticleMutation {
 
   @DgsMutation(field = MUTATION.FavoriteArticle)
   public DataFetcherResult<ArticlePayload> favoriteArticle(@InputArgument("slug") String slug) {
-    User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
+    AuthUser user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
     ArticleFavorite articleFavorite = new ArticleFavorite(article.getId(), user.getId());
@@ -84,7 +84,7 @@ public class ArticleMutation {
 
   @DgsMutation(field = MUTATION.UnfavoriteArticle)
   public DataFetcherResult<ArticlePayload> unfavoriteArticle(@InputArgument("slug") String slug) {
-    User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
+    AuthUser user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
     articleFavoriteRepository
@@ -101,7 +101,7 @@ public class ArticleMutation {
 
   @DgsMutation(field = MUTATION.DeleteArticle)
   public DeletionStatus deleteArticle(@InputArgument("slug") String slug) {
-    User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
+    AuthUser user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
 

@@ -14,7 +14,7 @@ import io.spring.application.CursorPager.Direction;
 import io.spring.application.DateTimeCursor;
 import io.spring.application.data.ArticleData;
 import io.spring.application.data.CommentData;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import io.spring.graphql.DgsConstants.ARTICLE;
 import io.spring.graphql.DgsConstants.COMMENTPAYLOAD;
 import io.spring.graphql.types.Article;
@@ -59,7 +59,7 @@ public class CommentDatafetcher {
       throw new IllegalArgumentException("first 和 last 必须只存在一个");
     }
 
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
     Article article = dfe.getSource();
     Map<String, ArticleData> map = dfe.getLocalContext();
     ArticleData articleData = map.get(article.getSlug());
