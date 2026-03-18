@@ -25,6 +25,6 @@
         <foreach collection="ids" item="item" separator="," open="(" close=")">
             #{item}
         </foreach>
-        and AF.user_id = #{currentUser.id}
+        and AF.user_id = #{userId}
     </select>
 </mapper>

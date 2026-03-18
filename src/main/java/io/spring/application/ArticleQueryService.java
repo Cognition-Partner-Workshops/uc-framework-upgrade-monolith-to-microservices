@@ -5,10 +5,10 @@ import static java.util.stream.Collectors.toList;
 import io.spring.application.data.ArticleData;
 import io.spring.application.data.ArticleDataList;
 import io.spring.application.data.ArticleFavoriteCount;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
+import io.spring.infrastructure.client.UserServiceClient;
 import io.spring.infrastructure.mybatis.readservice.ArticleFavoritesReadService;
 import io.spring.infrastructure.mybatis.readservice.ArticleReadService;
-import io.spring.infrastructure.mybatis.readservice.UserRelationshipQueryService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,10 +24,10 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class ArticleQueryService {
   private ArticleReadService articleReadService;
-  private UserRelationshipQueryService userRelationshipQueryService;
+  private UserServiceClient userServiceClient;
   private ArticleFavoritesReadService articleFavoritesReadService;
 
-  public Optional<ArticleData> findById(String id, User user) {
+  public Optional<ArticleData> findById(String id, AuthUser user) {
     ArticleData articleData = articleReadService.findById(id);
     if (articleData == null) {
       return Optional.empty();
@@ -39,7 +39,7 @@ public class ArticleQueryService {
     }
   }
 
-  public Optional<ArticleData> findBySlug(String slug, User user) {
+  public Optional<ArticleData> findBySlug(String slug, AuthUser user) {
     ArticleData articleData = articleReadService.findBySlug(slug);
     if (articleData == null) {
       return Optional.empty();
@@ -56,7 +56,7 @@ public class ArticleQueryService {
       String author,
       String favoritedBy,
       CursorPageParameter<DateTime> page,
-      User currentUser) {
+      AuthUser currentUser) {
     List<String> articleIds =
         articleReadService.findArticlesWithCursor(tag, author, favoritedBy, page);
     if (articleIds.size() == 0) {
@@ -78,8 +78,8 @@ public class ArticleQueryService {
   }
 
   public CursorPager<ArticleData> findUserFeedWithCursor(
-      User user, CursorPageParameter<DateTime> page) {
-    List<String> followdUsers = userRelationshipQueryService.followedUsers(user.getId());
+      AuthUser user, CursorPageParameter<DateTime> page) {
+    List<String> followdUsers = userServiceClient.followedUsers(user.getId());
     if (followdUsers.size() == 0) {
       return new CursorPager<>(new ArrayList<>(), page.getDirection(), false);
     } else {
@@ -98,7 +98,7 @@ public class ArticleQueryService {
   }
 
   public ArticleDataList findRecentArticles(
-      String tag, String author, String favoritedBy, Page page, User currentUser) {
+      String tag, String author, String favoritedBy, Page page, AuthUser currentUser) {
     List<String> articleIds = articleReadService.queryArticles(tag, author, favoritedBy, page);
     int articleCount = articleReadService.countArticle(tag, author, favoritedBy);
     if (articleIds.size() == 0) {
@@ -110,8 +110,8 @@ public class ArticleQueryService {
     }
   }
 
-  public ArticleDataList findUserFeed(User user, Page page) {
-    List<String> followdUsers = userRelationshipQueryService.followedUsers(user.getId());
+  public ArticleDataList findUserFeed(AuthUser user, Page page) {
+    List<String> followdUsers = userServiceClient.followedUsers(user.getId());
     if (followdUsers.size() == 0) {
       return new ArticleDataList(new ArrayList<>(), 0);
     } else {
@@ -122,7 +122,7 @@ public class ArticleQueryService {
     }
   }
 
-  private void fillExtraInfo(List<ArticleData> articles, User currentUser) {
+  private void fillExtraInfo(List<ArticleData> articles, AuthUser currentUser) {
     setFavoriteCount(articles);
     if (currentUser != null) {
       setIsFavorite(articles, currentUser);
@@ -130,9 +130,9 @@ public class ArticleQueryService {
     }
   }
 
-  private void setIsFollowingAuthor(List<ArticleData> articles, User currentUser) {
+  private void setIsFollowingAuthor(List<ArticleData> articles, AuthUser currentUser) {
     Set<String> followingAuthors =
-        userRelationshipQueryService.followingAuthors(
+        userServiceClient.followingAuthors(
             currentUser.getId(),
             articles.stream()
                 .map(articleData1 -> articleData1.getProfileData().getId())
@@ -158,11 +158,11 @@ public class ArticleQueryService {
         articleData -> articleData.setFavoritesCount(countMap.get(articleData.getId())));
   }
 
-  private void setIsFavorite(List<ArticleData> articles, User currentUser) {
+  private void setIsFavorite(List<ArticleData> articles, AuthUser currentUser) {
     Set<String> favoritedArticles =
         articleFavoritesReadService.userFavorites(
             articles.stream().map(articleData -> articleData.getId()).collect(toList()),
-            currentUser);
+            currentUser.getId());
 
     articles.forEach(
         articleData -> {
@@ -172,13 +172,13 @@ public class ArticleQueryService {
         });
   }
 
-  private void fillExtraInfo(String id, User user, ArticleData articleData) {
+  private void fillExtraInfo(String id, AuthUser user, ArticleData articleData) {
     articleData.setFavorited(articleFavoritesReadService.isUserFavorite(user.getId(), id));
     articleData.setFavoritesCount(articleFavoritesReadService.articleFavoriteCount(id));
     articleData
         .getProfileData()
         .setFollowing(
-            userRelationshipQueryService.isUserFollowing(
+            userServiceClient.isUserFollowing(
                 user.getId(), articleData.getProfileData().getId()));
   }
 }

@@ -9,7 +9,7 @@ import io.spring.application.data.ArticleData;
 import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.service.AuthorizationService;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.Valid;
@@ -34,7 +34,7 @@ public class ArticleApi {
 
   @GetMapping
   public ResponseEntity<?> article(
-      @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+      @PathVariable("slug") String slug, @AuthenticationPrincipal AuthUser user) {
     return articleQueryService
         .findBySlug(slug, user)
         .map(articleData -> ResponseEntity.ok(articleResponse(articleData)))
@@ -44,7 +44,7 @@ public class ArticleApi {
   @PutMapping
   public ResponseEntity<?> updateArticle(
       @PathVariable("slug") String slug,
-      @AuthenticationPrincipal User user,
+      @AuthenticationPrincipal AuthUser user,
       @Valid @RequestBody UpdateArticleParam updateArticleParam) {
     return articleRepository
         .findBySlug(slug)
@@ -64,7 +64,7 @@ public class ArticleApi {
 
   @DeleteMapping
   public ResponseEntity deleteArticle(
-      @PathVariable("slug") String slug, @AuthenticationPrincipal User user) {
+      @PathVariable("slug") String slug, @AuthenticationPrincipal AuthUser user) {
     return articleRepository
         .findBySlug(slug)
         .map(

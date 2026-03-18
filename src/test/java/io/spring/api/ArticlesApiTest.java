@@ -66,7 +66,7 @@ public class ArticlesApiTest extends TestWithCurrentUser {
             new DateTime(),
             new DateTime(),
             tagList,
-            new ProfileData("userid", user.getUsername(), user.getBio(), user.getImage(), false));
+            new ProfileData("userid", user.getUsername(), "", "", false));
 
     when(articleCommandService.createArticle(any(), any()))
         .thenReturn(new Article(title, description, body, tagList, user.getId()));
@@ -135,7 +135,7 @@ public class ArticlesApiTest extends TestWithCurrentUser {
             new DateTime(),
             new DateTime(),
             asList(tagList),
-            new ProfileData("userid", user.getUsername(), user.getBio(), user.getImage(), false));
+            new ProfileData("userid", user.getUsername(), "", "", false));
 
     when(articleQueryService.findBySlug(eq(Article.toSlug(title)), any()))
         .thenReturn(Optional.of(articleData));

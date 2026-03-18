@@ -5,7 +5,7 @@ import io.spring.application.Page;
 import io.spring.application.article.ArticleCommandService;
 import io.spring.application.article.NewArticleParam;
 import io.spring.core.article.Article;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import java.util.HashMap;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -27,7 +27,7 @@ public class ArticlesApi {
 
   @PostMapping
   public ResponseEntity createArticle(
-      @Valid @RequestBody NewArticleParam newArticleParam, @AuthenticationPrincipal User user) {
+      @Valid @RequestBody NewArticleParam newArticleParam, @AuthenticationPrincipal AuthUser user) {
     Article article = articleCommandService.createArticle(newArticleParam, user);
     return ResponseEntity.ok(
         new HashMap<String, Object>() {
@@ -41,7 +41,7 @@ public class ArticlesApi {
   public ResponseEntity getFeed(
       @RequestParam(value = "offset", defaultValue = "0") int offset,
       @RequestParam(value = "limit", defaultValue = "20") int limit,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal AuthUser user) {
     return ResponseEntity.ok(articleQueryService.findUserFeed(user, new Page(offset, limit)));
   }
 
@@ -52,7 +52,7 @@ public class ArticlesApi {
       @RequestParam(value = "tag", required = false) String tag,
       @RequestParam(value = "favorited", required = false) String favoritedBy,
       @RequestParam(value = "author", required = false) String author,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal AuthUser user) {
     return ResponseEntity.ok(
         articleQueryService.findRecentArticles(
             tag, author, favoritedBy, new Page(offset, limit), user));

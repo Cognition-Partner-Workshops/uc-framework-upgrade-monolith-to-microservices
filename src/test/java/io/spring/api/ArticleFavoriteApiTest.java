@@ -18,7 +18,7 @@ import io.spring.core.article.ArticleRepository;
 import io.spring.core.article.Tag;
 import io.spring.core.favorite.ArticleFavorite;
 import io.spring.core.favorite.ArticleFavoriteRepository;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -47,7 +47,7 @@ public class ArticleFavoriteApiTest extends TestWithCurrentUser {
   public void setUp() throws Exception {
     super.setUp();
     RestAssuredMockMvc.mockMvc(mvc);
-    User anotherUser = new User("other@test.com", "other", "123", "", "");
+    AuthUser anotherUser = new AuthUser("another-user-id", "other", "other@test.com");
     article = new Article("title", "desc", "body", Arrays.asList("java"), anotherUser.getId());
     when(articleRepository.findBySlug(eq(article.getSlug()))).thenReturn(Optional.of(article));
     ArticleData articleData =
@@ -65,8 +65,8 @@ public class ArticleFavoriteApiTest extends TestWithCurrentUser {
             new ProfileData(
                 anotherUser.getId(),
                 anotherUser.getUsername(),
-                anotherUser.getBio(),
-                anotherUser.getImage(),
+                "",
+                "",
                 false));
     when(articleQueryService.findBySlug(eq(articleData.getSlug()), eq(user)))
         .thenReturn(Optional.of(articleData));

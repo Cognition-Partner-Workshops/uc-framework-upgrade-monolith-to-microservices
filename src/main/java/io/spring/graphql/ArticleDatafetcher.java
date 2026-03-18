@@ -17,8 +17,8 @@ import io.spring.application.CursorPager.Direction;
 import io.spring.application.DateTimeCursor;
 import io.spring.application.data.ArticleData;
 import io.spring.application.data.CommentData;
-import io.spring.core.user.User;
-import io.spring.core.user.UserRepository;
+import io.spring.core.user.AuthUser;
+import io.spring.infrastructure.client.UserServiceClient;
 import io.spring.graphql.DgsConstants.ARTICLEPAYLOAD;
 import io.spring.graphql.DgsConstants.COMMENT;
 import io.spring.graphql.DgsConstants.PROFILE;
@@ -37,7 +37,7 @@ import org.joda.time.format.ISODateTimeFormat;
 public class ArticleDatafetcher {
 
   private ArticleQueryService articleQueryService;
-  private UserRepository userRepository;
+  private UserServiceClient userServiceClient;
 
   @DgsQuery(field = QUERY.Feed)
   public DataFetcherResult<ArticlesConnection> getFeed(
@@ -50,7 +50,7 @@ public class ArticleDatafetcher {
       throw new IllegalArgumentException("first 和 last 必须只存在一个");
     }
 
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
 
     CursorPager<ArticleData> articles;
     if (first != null) {
@@ -97,9 +97,11 @@ public class ArticleDatafetcher {
     }
 
     Profile profile = dfe.getSource();
-    User target =
-        userRepository
-            .findByUsername(profile.getUsername())
+    // Look up the target user via REST client to get their ID for feed lookup
+    AuthUser target =
+        userServiceClient
+            .findUserByUsername(profile.getUsername())
+            .map(u -> new AuthUser(u.getId(), u.getUsername(), u.getEmail()))
             .orElseThrow(ResourceNotFoundException::new);
 
     CursorPager<ArticleData> articles;
@@ -146,7 +148,7 @@ public class ArticleDatafetcher {
       throw new IllegalArgumentException("first 和 last 必须只存在一个");
     }
 
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
     Profile profile = dfe.getSource();
 
     CursorPager<ArticleData> articles;
@@ -200,7 +202,7 @@ public class ArticleDatafetcher {
       throw new IllegalArgumentException("first 和 last 必须只存在一个");
     }
 
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
     Profile profile = dfe.getSource();
 
     CursorPager<ArticleData> articles;
@@ -256,7 +258,7 @@ public class ArticleDatafetcher {
       throw new IllegalArgumentException("first 和 last 必须只存在一个");
     }
 
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
 
     CursorPager<ArticleData> articles;
     if (first != null) {
@@ -301,7 +303,7 @@ public class ArticleDatafetcher {
   public DataFetcherResult<Article> getArticle(DataFetchingEnvironment dfe) {
     io.spring.core.article.Article article = dfe.getLocalContext();
 
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
     ArticleData articleData =
         articleQueryService
             .findById(article.getId(), current)
@@ -322,7 +324,7 @@ public class ArticleDatafetcher {
   public DataFetcherResult<Article> getCommentArticle(
       DataFetchingEnvironment dataFetchingEnvironment) {
     CommentData comment = dataFetchingEnvironment.getLocalContext();
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
     ArticleData articleData =
         articleQueryService
             .findById(comment.getArticleId(), current)
@@ -341,7 +343,7 @@ public class ArticleDatafetcher {
 
   @DgsQuery(field = QUERY.Article)
   public DataFetcherResult<Article> findArticleBySlug(@InputArgument("slug") String slug) {
-    User current = SecurityUtil.getCurrentUser().orElse(null);
+    AuthUser current = SecurityUtil.getCurrentUser().orElse(null);
     ArticleData articleData =
         articleQueryService.findBySlug(slug, current).orElseThrow(ResourceNotFoundException::new);
     Article articleResult = buildArticleResult(articleData);

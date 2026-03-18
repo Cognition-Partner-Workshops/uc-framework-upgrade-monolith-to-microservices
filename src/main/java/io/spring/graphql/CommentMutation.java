@@ -13,7 +13,7 @@ import io.spring.core.article.ArticleRepository;
 import io.spring.core.comment.Comment;
 import io.spring.core.comment.CommentRepository;
 import io.spring.core.service.AuthorizationService;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
 import io.spring.graphql.DgsConstants.MUTATION;
 import io.spring.graphql.exception.AuthenticationException;
 import io.spring.graphql.types.CommentPayload;
@@ -31,7 +31,7 @@ public class CommentMutation {
   @DgsData(parentType = MUTATION.TYPE_NAME, field = MUTATION.AddComment)
   public DataFetcherResult<CommentPayload> createComment(
       @InputArgument("slug") String slug, @InputArgument("body") String body) {
-    User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
+    AuthUser user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);
     Comment comment = new Comment(body, user.getId(), article.getId());
@@ -49,7 +49,7 @@ public class CommentMutation {
   @DgsData(parentType = MUTATION.TYPE_NAME, field = MUTATION.DeleteComment)
   public DeletionStatus removeComment(
       @InputArgument("slug") String slug, @InputArgument("id") String commentId) {
-    User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
+    AuthUser user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
 
     Article article =
         articleRepository.findBySlug(slug).orElseThrow(ResourceNotFoundException::new);

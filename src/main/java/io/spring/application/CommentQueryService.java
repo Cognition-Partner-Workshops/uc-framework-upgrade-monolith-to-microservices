@@ -1,9 +1,9 @@
 package io.spring.application;
 
 import io.spring.application.data.CommentData;
-import io.spring.core.user.User;
+import io.spring.core.user.AuthUser;
+import io.spring.infrastructure.client.UserServiceClient;
 import io.spring.infrastructure.mybatis.readservice.CommentReadService;
-import io.spring.infrastructure.mybatis.readservice.UserRelationshipQueryService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,9 +18,9 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class CommentQueryService {
   private CommentReadService commentReadService;
-  private UserRelationshipQueryService userRelationshipQueryService;
+  private UserServiceClient userServiceClient;
 
-  public Optional<CommentData> findById(String id, User user) {
+  public Optional<CommentData> findById(String id, AuthUser user) {
     CommentData commentData = commentReadService.findById(id);
     if (commentData == null) {
       return Optional.empty();
@@ -28,17 +28,17 @@ public class CommentQueryService {
       commentData
           .getProfileData()
           .setFollowing(
-              userRelationshipQueryService.isUserFollowing(
+              userServiceClient.isUserFollowing(
                   user.getId(), commentData.getProfileData().getId()));
     }
     return Optional.ofNullable(commentData);
   }
 
-  public List<CommentData> findByArticleId(String articleId, User user) {
+  public List<CommentData> findByArticleId(String articleId, AuthUser user) {
     List<CommentData> comments = commentReadService.findByArticleId(articleId);
     if (comments.size() > 0 && user != null) {
       Set<String> followingAuthors =
-          userRelationshipQueryService.followingAuthors(
+          userServiceClient.followingAuthors(
               user.getId(),
               comments.stream()
                   .map(commentData -> commentData.getProfileData().getId())
@@ -54,14 +54,14 @@ public class CommentQueryService {
   }
 
   public CursorPager<CommentData> findByArticleIdWithCursor(
-      String articleId, User user, CursorPageParameter<DateTime> page) {
+      String articleId, AuthUser user, CursorPageParameter<DateTime> page) {
     List<CommentData> comments = commentReadService.findByArticleIdWithCursor(articleId, page);
     if (comments.isEmpty()) {
       return new CursorPager<>(new ArrayList<>(), page.getDirection(), false);
     }
     if (user != null) {
       Set<String> followingAuthors =
-          userRelationshipQueryService.followingAuthors(
+          userServiceClient.followingAuthors(
               user.getId(),
               comments.stream()
                   .map(commentData -> commentData.getProfileData().getId())
