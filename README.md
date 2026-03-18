@@ -62,7 +62,7 @@ The application includes seed data with sample users, articles, tags, comments, 
 
 # Getting started
 
-## Backend (Spring Boot)
+## Backend (Spring Boot) — Monolith
 
 You'll need Java 11 installed.
 
@@ -74,6 +74,64 @@ To test that it works, open a browser tab at http://localhost:8080/tags .
 Alternatively, you can run
 
     curl http://localhost:8080/tags
+
+## Comment Microservice
+
+The Comment domain has been extracted into a standalone Spring Boot microservice under `comment-service/`. It owns comment creation, listing, and deletion on articles.
+
+### Architecture
+
+The microservice follows the same DDD-based layered architecture as the monolith:
+
+1. `api` — REST controller (`CommentsApi`) with create, list, and delete endpoints
+2. `core` — `Comment` entity and `CommentRepository` interface
+3. `application` — `CommentQueryService` for read-side queries, `CommentData`/`ProfileData` DTOs
+4. `infrastructure` — MyBatis mapper and read service, `MyBatisCommentRepository`, `DateTimeHandler`, inter-service HTTP clients, JWT token validation
+
+### REST Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/articles/{slug}/comments` | Required | Create a comment on an article |
+| `GET` | `/articles/{slug}/comments` | Optional | List all comments on an article |
+| `DELETE` | `/articles/{slug}/comments/{id}` | Required | Delete a comment (author or article owner) |
+
+### Inter-Service Communication
+
+The Comment service makes HTTP calls to other services:
+
+- **Article Service** (`ArticleServiceClient`): Validates article existence by slug and retrieves article ID/owner before any comment operation.
+- **User Service** (`UserServiceClient`): Provided for fetching user profile data (plumbing for future use).
+
+Service URLs are configured in `comment-service/src/main/resources/application.properties`:
+
+```properties
+article-service.url=http://localhost:8080
+user-service.url=http://localhost:8080
+```
+
+### Running the Comment Service
+
+```bash
+cd comment-service
+./gradlew bootRun
+```
+
+The service runs on **port 8082** with its own SQLite database (`comment-dev.db`). It shares the same JWT secret as the monolith so tokens are interchangeable.
+
+To test:
+
+```bash
+# List comments (with the monolith running on port 8080 for article lookup)
+curl http://localhost:8082/articles/how-to-train-your-dragon/comments
+```
+
+### Database
+
+The Comment service uses its own SQLite database with Flyway migrations. The schema includes:
+
+- `comments` — stores comment data (id, body, article_id, user_id, timestamps)
+- `users` — local read-only projection of user profile data for author info in comment queries
 
 ## Frontend (Next.js)
 
@@ -110,7 +168,11 @@ The entry point address of the backend API is at http://localhost:8080, **not** 
 
 The repository contains a lot of test cases to cover both api test and repository test.
 
+    # Monolith tests
     ./gradlew test
+
+    # Comment microservice tests
+    cd comment-service && ./gradlew test
 
 # Code format
 
