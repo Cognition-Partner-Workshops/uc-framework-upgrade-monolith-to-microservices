@@ -1,0 +1,240 @@
+package io.spring.article.application;
+
+import static java.util.stream.Collectors.toList;
+
+import io.spring.article.application.data.ArticleData;
+import io.spring.article.application.data.ArticleDataList;
+import io.spring.article.application.data.ArticleFavoriteCount;
+import io.spring.article.application.data.ProfileData;
+import io.spring.article.client.UserDTO;
+import io.spring.article.client.UserServiceClient;
+import io.spring.article.infrastructure.mybatis.readservice.ArticleFavoritesReadService;
+import io.spring.article.infrastructure.mybatis.readservice.ArticleReadService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import org.joda.time.DateTime;
+import org.springframework.stereotype.Service;
+
+@Service
+@AllArgsConstructor
+public class ArticleQueryService {
+  private ArticleReadService articleReadService;
+  private UserServiceClient userServiceClient;
+  private ArticleFavoritesReadService articleFavoritesReadService;
+
+  public Optional<ArticleData> findById(String id, UserDTO user) {
+    ArticleData articleData = articleReadService.findById(id);
+    if (articleData == null) {
+      return Optional.empty();
+    } else {
+      fillProfileData(articleData);
+      if (user != null) {
+        fillExtraInfo(id, user, articleData);
+      }
+      return Optional.of(articleData);
+    }
+  }
+
+  public Optional<ArticleData> findBySlug(String slug, UserDTO user) {
+    ArticleData articleData = articleReadService.findBySlug(slug);
+    if (articleData == null) {
+      return Optional.empty();
+    } else {
+      fillProfileData(articleData);
+      if (user != null) {
+        fillExtraInfo(articleData.getId(), user, articleData);
+      }
+      return Optional.of(articleData);
+    }
+  }
+
+  public CursorPager<ArticleData> findRecentArticlesWithCursor(
+      String tag,
+      String author,
+      String favoritedBy,
+      CursorPageParameter<DateTime> page,
+      UserDTO currentUser) {
+    String authorId = resolveUserId(author);
+    String favoritedByUserId = resolveUserId(favoritedBy);
+    List<String> articleIds =
+        articleReadService.findArticlesWithCursor(tag, authorId, favoritedByUserId, page);
+    if (articleIds.size() == 0) {
+      return new CursorPager<>(new ArrayList<>(), page.getDirection(), false);
+    } else {
+      boolean hasExtra = articleIds.size() > page.getLimit();
+      if (hasExtra) {
+        articleIds.remove(page.getLimit());
+      }
+      if (!page.isNext()) {
+        Collections.reverse(articleIds);
+      }
+
+      List<ArticleData> articles = articleReadService.findArticles(articleIds);
+      fillProfileDataList(articles);
+      fillExtraInfo(articles, currentUser);
+
+      return new CursorPager<>(articles, page.getDirection(), hasExtra);
+    }
+  }
+
+  public CursorPager<ArticleData> findUserFeedWithCursor(
+      UserDTO user, CursorPageParameter<DateTime> page) {
+    List<String> followedUsers = userServiceClient.followedUsers(user.getId());
+    if (followedUsers.size() == 0) {
+      return new CursorPager<>(new ArrayList<>(), page.getDirection(), false);
+    } else {
+      List<ArticleData> articles =
+          articleReadService.findArticlesOfAuthorsWithCursor(followedUsers, page);
+      boolean hasExtra = articles.size() > page.getLimit();
+      if (hasExtra) {
+        articles.remove(page.getLimit());
+      }
+      if (!page.isNext()) {
+        Collections.reverse(articles);
+      }
+      fillProfileDataList(articles);
+      fillExtraInfo(articles, user);
+      return new CursorPager<>(articles, page.getDirection(), hasExtra);
+    }
+  }
+
+  public ArticleDataList findRecentArticles(
+      String tag, String author, String favoritedBy, Page page, UserDTO currentUser) {
+    String authorId = resolveUserId(author);
+    String favoritedByUserId = resolveUserId(favoritedBy);
+    List<String> articleIds =
+        articleReadService.queryArticles(tag, authorId, favoritedByUserId, page);
+    int articleCount = articleReadService.countArticle(tag, authorId, favoritedByUserId);
+    if (articleIds.size() == 0) {
+      return new ArticleDataList(new ArrayList<>(), articleCount);
+    } else {
+      List<ArticleData> articles = articleReadService.findArticles(articleIds);
+      fillProfileDataList(articles);
+      fillExtraInfo(articles, currentUser);
+      return new ArticleDataList(articles, articleCount);
+    }
+  }
+
+  public ArticleDataList findUserFeed(UserDTO user, Page page) {
+    List<String> followedUsers = userServiceClient.followedUsers(user.getId());
+    if (followedUsers.size() == 0) {
+      return new ArticleDataList(new ArrayList<>(), 0);
+    } else {
+      List<ArticleData> articles = articleReadService.findArticlesOfAuthors(followedUsers, page);
+      fillProfileDataList(articles);
+      fillExtraInfo(articles, user);
+      int count = articleReadService.countFeedSize(followedUsers);
+      return new ArticleDataList(articles, count);
+    }
+  }
+
+  private String resolveUserId(String username) {
+    if (username == null) {
+      return null;
+    }
+    return userServiceClient
+        .findUserByUsername(username)
+        .map(UserDTO::getId)
+        .orElse(null);
+  }
+
+  private void fillProfileData(ArticleData articleData) {
+    if (articleData.getProfileData() == null || articleData.getProfileData().getId() == null) {
+      return;
+    }
+    String userId = articleData.getProfileData().getId();
+    userServiceClient
+        .findUserById(userId)
+        .ifPresent(
+            user -> {
+              ProfileData profile = articleData.getProfileData();
+              profile.setUsername(user.getUsername());
+              profile.setBio(user.getBio());
+              profile.setImage(user.getImage());
+            });
+  }
+
+  private void fillProfileDataList(List<ArticleData> articles) {
+    Map<String, UserDTO> userCache = new HashMap<>();
+    for (ArticleData article : articles) {
+      if (article.getProfileData() != null && article.getProfileData().getId() != null) {
+        String userId = article.getProfileData().getId();
+        UserDTO user =
+            userCache.computeIfAbsent(
+                userId, id -> userServiceClient.findUserById(id).orElse(null));
+        if (user != null) {
+          ProfileData profile = article.getProfileData();
+          profile.setUsername(user.getUsername());
+          profile.setBio(user.getBio());
+          profile.setImage(user.getImage());
+        }
+      }
+    }
+  }
+
+  private void fillExtraInfo(List<ArticleData> articles, UserDTO currentUser) {
+    setFavoriteCount(articles);
+    if (currentUser != null) {
+      setIsFavorite(articles, currentUser);
+      setIsFollowingAuthor(articles, currentUser);
+    }
+  }
+
+  private void setIsFollowingAuthor(List<ArticleData> articles, UserDTO currentUser) {
+    Set<String> followingAuthors =
+        userServiceClient.followingAuthors(
+            currentUser.getId(),
+            articles.stream()
+                .map(articleData1 -> articleData1.getProfileData().getId())
+                .collect(toList()));
+    articles.forEach(
+        articleData -> {
+          if (followingAuthors.contains(articleData.getProfileData().getId())) {
+            articleData.getProfileData().setFollowing(true);
+          }
+        });
+  }
+
+  private void setFavoriteCount(List<ArticleData> articles) {
+    List<ArticleFavoriteCount> favoritesCounts =
+        articleFavoritesReadService.articlesFavoriteCount(
+            articles.stream().map(ArticleData::getId).collect(toList()));
+    Map<String, Integer> countMap = new HashMap<>();
+    favoritesCounts.forEach(
+        item -> {
+          countMap.put(item.getId(), item.getCount());
+        });
+    articles.forEach(
+        articleData -> articleData.setFavoritesCount(countMap.get(articleData.getId())));
+  }
+
+  private void setIsFavorite(List<ArticleData> articles, UserDTO currentUser) {
+    Set<String> favoritedArticles =
+        articleFavoritesReadService.userFavorites(
+            articles.stream().map(articleData -> articleData.getId()).collect(toList()),
+            currentUser.getId());
+
+    articles.forEach(
+        articleData -> {
+          if (favoritedArticles.contains(articleData.getId())) {
+            articleData.setFavorited(true);
+          }
+        });
+  }
+
+  private void fillExtraInfo(String id, UserDTO user, ArticleData articleData) {
+    articleData.setFavorited(articleFavoritesReadService.isUserFavorite(user.getId(), id));
+    articleData.setFavoritesCount(articleFavoritesReadService.articleFavoriteCount(id));
+    articleData
+        .getProfileData()
+        .setFollowing(
+            userServiceClient.isUserFollowing(
+                user.getId(), articleData.getProfileData().getId()));
+  }
+}
