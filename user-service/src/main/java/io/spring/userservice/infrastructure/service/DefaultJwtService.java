@@ -1,11 +1,11 @@
-package io.spring.infrastructure.service;
+package io.spring.userservice.infrastructure.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.spring.core.service.JwtService;
-import io.spring.core.user.User;
+import io.spring.userservice.core.JwtService;
+import io.spring.userservice.core.User;
 import java.util.Date;
 import java.util.Optional;
 import javax.crypto.SecretKey;
