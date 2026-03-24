@@ -155,8 +155,7 @@ public class ArticleQueryService {
           countMap.put(item.getId(), item.getCount());
         });
     articles.forEach(
-        articleData ->
-            articleData.setFavoritesCount(countMap.getOrDefault(articleData.getId(), 1)));
+        articleData -> articleData.setFavoritesCount(countMap.get(articleData.getId())));
   }
 
   private void setIsFavorite(List<ArticleData> articles, User currentUser) {
