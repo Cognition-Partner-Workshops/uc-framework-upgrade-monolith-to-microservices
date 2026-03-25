@@ -1,0 +1,27 @@
+## .NET
+bin/
+obj/
+*.db
+*.user
+*.suo
+*.vs/
+.vscode/
+*.DotSettings.user
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+## IDE
+.idea/
+*.swp
+*~
