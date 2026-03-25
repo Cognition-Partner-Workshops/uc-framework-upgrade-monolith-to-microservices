@@ -1,4 +1,5 @@
 using MediatR;
+using WeatherApi.Application.Common.Interfaces;
 using WeatherApi.Application.DTOs;
 using WeatherApi.Domain.Entities;
 using WeatherApi.Domain.Enums;
@@ -11,10 +12,12 @@ public record RegisterCommand(string Username, string Password, string Email, st
 public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public RegisterCommandHandler(IUserRepository userRepository)
+    public RegisterCommandHandler(IUserRepository userRepository, IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<UserDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -33,7 +36,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDto>
         var user = new User
         {
             Username = request.Username,
-            PasswordHash = ComputeHash(request.Password),
+            PasswordHash = _passwordHasher.HashPassword(request.Password),
             Email = request.Email,
             Role = request.Role,
             CreatedAt = DateTime.UtcNow
@@ -48,13 +51,5 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, UserDto>
             Email = user.Email,
             Role = user.Role
         };
-    }
-
-    private static string ComputeHash(string password)
-    {
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-        var hashBytes = sha256.ComputeHash(bytes);
-        return Convert.ToBase64String(hashBytes);
     }
 }

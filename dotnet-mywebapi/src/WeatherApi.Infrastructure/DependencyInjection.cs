@@ -19,8 +19,9 @@ public static class DependencyInjection
         services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
         services.AddScoped<IUserRepository, UserRepository>();
 
-        // JWT
+        // Services
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"]
