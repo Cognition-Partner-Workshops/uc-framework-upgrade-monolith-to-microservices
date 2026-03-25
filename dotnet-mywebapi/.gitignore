@@ -1,2 +1,5 @@
 bin/
 obj/
+logs/
+*.user
+appsettings.Development.json
