@@ -1,0 +1,59 @@
+<div class="container">
+  <header class="header">
+    <h1>WeatherApi Dashboard</h1>
+    <p class="subtitle">Angular Frontend connected to .NET 8 Clean Architecture API</p>
+  </header>
+
+  <!-- API Response Card -->
+  <div class="card api-response-card">
+    <h2>API Response</h2>
+    <div class="response-box" *ngIf="!loading && !error">
+      <span class="status-badge success">200 OK</span>
+      <code class="response-text">{{ helloMessage }}</code>
+    </div>
+    <div class="response-box" *ngIf="loading">
+      <span class="status-badge loading">Loading...</span>
+    </div>
+    <div class="response-box" *ngIf="error">
+      <span class="status-badge error">Error</span>
+      <code class="response-text error-text">{{ error }}</code>
+    </div>
+    <button class="refresh-btn" (click)="fetchHelloWorld()" [disabled]="loading">
+      Refresh
+    </button>
+  </div>
+
+  <!-- API Endpoints Card -->
+  <div class="card endpoints-card" *ngIf="endpoints.length > 0">
+    <h2>Available API Endpoints</h2>
+    <table class="endpoints-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Path</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ep of endpoints">
+          <td>
+            <span class="method-badge" [ngClass]="ep.method.toLowerCase()">{{ ep.method }}</span>
+          </td>
+          <td><code>{{ ep.path }}</code></td>
+          <td>{{ ep.description }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Connection Info Card -->
+  <div class="card info-card">
+    <h2>Connection Info</h2>
+    <ul>
+      <li><strong>Backend URL:</strong> <code>http://localhost:5128</code></li>
+      <li><strong>Swagger UI:</strong> <a href="http://localhost:5128/swagger" target="_blank">http://localhost:5128/swagger</a></li>
+      <li><strong>Architecture:</strong> Clean Architecture with CQRS / MediatR</li>
+      <li><strong>Authentication:</strong> JWT Bearer Token</li>
+    </ul>
+  </div>
+</div>

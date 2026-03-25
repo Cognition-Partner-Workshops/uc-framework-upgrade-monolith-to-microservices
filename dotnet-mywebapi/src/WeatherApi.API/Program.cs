@@ -27,6 +27,17 @@ try
     builder.Services.AddApplicationServices();
     builder.Services.AddInfrastructureServices(builder.Configuration);
 
+    // CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAngular", policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+
     // Controllers
     builder.Services.AddControllers();
 
@@ -83,6 +94,8 @@ try
             options.SwaggerEndpoint("/swagger/v1/swagger.json", "WeatherApi v1");
         });
     }
+
+    app.UseCors("AllowAngular");
 
     app.UseAuthentication();
     app.UseAuthorization();
