@@ -11,9 +11,9 @@ public class WeatherMappingConfig : IRegister
         config.NewConfig<WeatherForecast, WeatherForecastDto>();
 
         config.NewConfig<CreateWeatherForecastDto, WeatherForecast>()
-            .Map(dest => dest.Id, _ => Guid.NewGuid());
+            .Ignore(dest => dest.Id);
 
         config.NewConfig<UpdateWeatherForecastDto, WeatherForecast>()
-            .IgnoreNullValues(true);
+            .Ignore(dest => dest.Id);
     }
 }

@@ -61,12 +61,7 @@ public class WeatherForecastService : IWeatherForecastService
         if (existing is null)
             return null;
 
-        existing.City = dto.City;
-        existing.Date = dto.Date;
-        existing.TemperatureCelsius = dto.TemperatureCelsius;
-        existing.Summary = dto.Summary;
-        existing.Humidity = dto.Humidity;
-        existing.WindSpeedKmh = dto.WindSpeedKmh;
+        _mapper.Map(dto, existing);
 
         var updated = await _repository.UpdateAsync(existing);
         return updated is null ? null : _mapper.Map<WeatherForecastDto>(updated);

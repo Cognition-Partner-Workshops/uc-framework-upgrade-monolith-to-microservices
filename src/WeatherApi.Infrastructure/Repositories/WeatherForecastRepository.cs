@@ -40,13 +40,9 @@ public class WeatherForecastRepository : IWeatherForecastRepository
 
     public async Task<WeatherForecast?> UpdateAsync(WeatherForecast forecast)
     {
-        var existing = await _context.WeatherForecasts.FindAsync(forecast.Id);
-        if (existing is null)
-            return null;
-
-        _context.Entry(existing).CurrentValues.SetValues(forecast);
+        _context.WeatherForecasts.Update(forecast);
         await _context.SaveChangesAsync();
-        return existing;
+        return forecast;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
