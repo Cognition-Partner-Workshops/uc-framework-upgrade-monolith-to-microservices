@@ -1,34 +1,22 @@
-.gradle
-/build/
-!gradle/wrapper/gradle-wrapper.jar
-*.db
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+
+## IDE
+.vs/
+.vscode/
+*.swp
+
+## OS
 .DS_Store
+Thumbs.db
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-nbproject/private/
-build/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
-
-### Frontend (Node.js) ###
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/.env*.local
-frontend/.git/
+## NuGet
+*.nupkg
+packages/
