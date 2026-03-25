@@ -32,3 +32,20 @@ frontend/.next/
 frontend/out/
 frontend/.env*.local
 frontend/.git/
+
+### .NET ###
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+.vs/
+*.nupkg
+packages/
+
+### OS ###
+Thumbs.db
+*.swp
