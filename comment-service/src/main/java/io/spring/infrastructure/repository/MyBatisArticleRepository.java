@@ -17,6 +17,11 @@ public class MyBatisArticleRepository implements ArticleRepository {
   }
 
   @Override
+  public void save(Article article) {
+    articleMapper.insert(article);
+  }
+
+  @Override
   public Optional<Article> findBySlug(String slug) {
     return Optional.ofNullable(articleMapper.findBySlug(slug));
   }
