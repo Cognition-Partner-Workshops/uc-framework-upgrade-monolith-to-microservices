@@ -620,6 +620,48 @@
   letter-spacing: 0.3px;
 }
 
+/* Loss Reports Nav Card */
+.loss-reports-nav-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.nav-description {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  text-decoration: none;
+  padding: 0.65rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.nav-btn .arrow-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s;
+}
+
+.nav-btn:hover .arrow-icon {
+  transform: translateX(4px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .header {

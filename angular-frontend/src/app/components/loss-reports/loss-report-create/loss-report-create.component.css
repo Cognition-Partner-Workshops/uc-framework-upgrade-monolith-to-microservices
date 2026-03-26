@@ -1,0 +1,197 @@
+.page-wrapper {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  animation: float 20s infinite ease-in-out;
+}
+
+.particle:nth-child(1) { width: 300px; height: 300px; top: 10%; left: 5%; animation-delay: 0s; }
+.particle:nth-child(2) { width: 200px; height: 200px; top: 60%; right: 10%; animation-delay: -7s; }
+.particle:nth-child(3) { width: 250px; height: 250px; bottom: 10%; left: 40%; animation-delay: -14s; }
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -30px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(15px, 15px) scale(1.05); }
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #6366f1;
+}
+
+.back-link mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.title-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  -webkit-text-fill-color: #34d399;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  padding: 2rem;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  margin-bottom: 0.25rem;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline__leading,
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline__notch,
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+::ng-deep .mdc-text-field--outlined:hover .mdc-notched-outline__leading,
+::ng-deep .mdc-text-field--outlined:hover .mdc-notched-outline__notch,
+::ng-deep .mdc-text-field--outlined:hover .mdc-notched-outline__trailing {
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+::ng-deep .mdc-text-field--focused .mdc-notched-outline__leading,
+::ng-deep .mdc-text-field--focused .mdc-notched-outline__notch,
+::ng-deep .mdc-text-field--focused .mdc-notched-outline__trailing {
+  border-color: #6366f1 !important;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-floating-label {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-input-element {
+  color: #e0e0e0 !important;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-form-field-icon-prefix mat-icon {
+  color: rgba(255, 255, 255, 0.3);
+  padding: 0 4px 0 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cancel-btn {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  padding: 0.5rem 1.5rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+::ng-deep .success-snackbar .mdc-snackbar__surface {
+  background: #065f46 !important;
+}
+
+::ng-deep .error-snackbar .mdc-snackbar__surface {
+  background: #991b1b !important;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+}
