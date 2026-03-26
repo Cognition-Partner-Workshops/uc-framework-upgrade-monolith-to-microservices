@@ -1,0 +1,281 @@
+<div class="page-wrapper">
+  <!-- Animated background particles -->
+  <div class="bg-particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>WeatherApi</h1>
+          <span class="tagline">Clean Architecture Dashboard</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="tech-badge">.NET 8</span>
+        <span class="tech-badge">Angular 18</span>
+        <span class="tech-badge">CQRS</span>
+        <span class="tech-badge">JWT</span>
+      </div>
+    </header>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon api-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Status</span>
+          <span class="stat-value" *ngIf="!loading && !error">Online</span>
+          <span class="stat-value loading-text" *ngIf="loading">Checking...</span>
+          <span class="stat-value error-text" *ngIf="error">Offline</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon endpoints-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Endpoints</span>
+          <span class="stat-value">{{ endpoints.length }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon arch-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Layers</span>
+          <span class="stat-value">4</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon auth-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Auth</span>
+          <span class="stat-value">JWT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+      <!-- API Response Card -->
+      <div class="card api-card">
+        <div class="card-header">
+          <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Live API Response
+          </h2>
+          <button class="refresh-btn" (click)="fetchHelloWorld()" [disabled]="loading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="loading">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+            </svg>
+            {{ loading ? 'Fetching...' : 'Refresh' }}
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="terminal">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <span class="terminal-title">GET /api/HelloWorld</span>
+            </div>
+            <div class="terminal-body">
+              <div class="terminal-line" *ngIf="!loading && !error">
+                <span class="prompt">$</span>
+                <span class="command">curl http://localhost:5128/api/HelloWorld</span>
+              </div>
+              <div class="terminal-response" *ngIf="!loading && !error">
+                <span class="status-code">HTTP/1.1 200 OK</span>
+                <span class="response-body">{{ helloMessage }}</span>
+              </div>
+              <div class="terminal-line" *ngIf="loading">
+                <span class="prompt">$</span>
+                <span class="command typing">Fetching response...</span>
+              </div>
+              <div class="terminal-line" *ngIf="error">
+                <span class="prompt">$</span>
+                <span class="command error-cmd">{{ error }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Architecture Card -->
+      <div class="card arch-card">
+        <div class="card-header">
+          <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            Architecture
+          </h2>
+        </div>
+        <div class="card-body">
+          <div class="arch-layers">
+            <div class="arch-layer api-layer">
+              <div class="layer-dot"></div>
+              <div class="layer-content">
+                <span class="layer-name">API</span>
+                <span class="layer-desc">Controllers, Middleware, Swagger</span>
+              </div>
+            </div>
+            <div class="arch-connector"></div>
+            <div class="arch-layer app-layer">
+              <div class="layer-dot"></div>
+              <div class="layer-content">
+                <span class="layer-name">Application</span>
+                <span class="layer-desc">CQRS, MediatR, Validation</span>
+              </div>
+            </div>
+            <div class="arch-connector"></div>
+            <div class="arch-layer infra-layer">
+              <div class="layer-dot"></div>
+              <div class="layer-content">
+                <span class="layer-name">Infrastructure</span>
+                <span class="layer-desc">Dapper, JWT, SQL Server</span>
+              </div>
+            </div>
+            <div class="arch-connector"></div>
+            <div class="arch-layer domain-layer">
+              <div class="layer-dot"></div>
+              <div class="layer-content">
+                <span class="layer-name">Domain</span>
+                <span class="layer-desc">Entities, Interfaces, Exceptions</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loss Reports Navigation Card -->
+    <div class="card loss-reports-nav-card">
+      <div class="card-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Loss Report Management
+        </h2>
+      </div>
+      <div class="card-body">
+        <p class="nav-description">Full CRUD management for insurance loss reports. Create, view, edit, and delete loss reports with real-time backend integration.</p>
+        <a routerLink="/loss-reports" class="nav-btn">
+          <span>Open Loss Reports</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="arrow-icon">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Endpoints Card -->
+    <div class="card endpoints-card" *ngIf="endpoints.length > 0">
+      <div class="card-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0022 16z"/>
+          </svg>
+          API Endpoints
+        </h2>
+      </div>
+      <div class="card-body">
+        <div class="endpoints-list">
+          <div class="endpoint-item" *ngFor="let ep of endpoints">
+            <span class="method-badge" [ngClass]="ep.method.toLowerCase()">{{ ep.method }}</span>
+            <code class="endpoint-path">{{ ep.path }}</code>
+            <span class="endpoint-desc" *ngIf="ep.description">{{ ep.description }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connection Info Card -->
+    <div class="card connection-card">
+      <div class="card-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-icon">
+            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+          </svg>
+          Connection Details
+        </h2>
+      </div>
+      <div class="card-body">
+        <div class="connection-grid">
+          <div class="connection-item">
+            <span class="connection-label">Backend API</span>
+            <code class="connection-value">http://localhost:5128</code>
+          </div>
+          <div class="connection-item">
+            <span class="connection-label">Swagger UI</span>
+            <a href="http://localhost:5128/swagger" target="_blank" class="connection-link">
+              http://localhost:5128/swagger
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="external-icon">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          </div>
+          <div class="connection-item">
+            <span class="connection-label">Frontend</span>
+            <code class="connection-value">http://localhost:4200</code>
+          </div>
+          <div class="connection-item">
+            <span class="connection-label">Logging</span>
+            <code class="connection-value">Serilog (Console + File)</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Built with .NET 8 Clean Architecture &bull; Angular 18 &bull; MediatR &bull; Dapper &bull; JWT</p>
+    </footer>
+  </div>
+</div>

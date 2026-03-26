@@ -1,0 +1,119 @@
+<div class="page-wrapper">
+  <div class="bg-particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <div class="container">
+    <header class="page-header">
+      <div class="header-left">
+        <a routerLink="/" class="back-link">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Dashboard</span>
+        </a>
+        <h1>
+          <mat-icon class="title-icon">assessment</mat-icon>
+          Loss Reports
+        </h1>
+        <p class="subtitle">Manage and track insurance loss reports</p>
+      </div>
+      <div class="header-right">
+        <button mat-raised-button color="primary" routerLink="/loss-reports/create" class="add-btn">
+          <mat-icon>add</mat-icon>
+          New Report
+        </button>
+      </div>
+    </header>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <mat-icon>description</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ reports.length }}</span>
+          <span class="stat-label">Total Reports</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon>attach_money</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ formatCurrency(getTotalAmount()) }}</span>
+          <span class="stat-label">Total Amount</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card table-card" *ngIf="!isLoading">
+      <div class="empty-state" *ngIf="reports.length === 0">
+        <mat-icon class="empty-icon">inbox</mat-icon>
+        <h3>No Loss Reports Found</h3>
+        <p>Get started by creating your first loss report.</p>
+        <button mat-raised-button color="primary" routerLink="/loss-reports/create">
+          <mat-icon>add</mat-icon>
+          Create First Report
+        </button>
+      </div>
+
+      <div class="table-container" *ngIf="reports.length > 0">
+        <table mat-table [dataSource]="reports" class="loss-report-table">
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let report">
+              <span class="id-badge">#{{ report.id }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="policyNumber">
+            <th mat-header-cell *matHeaderCellDef>Policy Number</th>
+            <td mat-cell *matCellDef="let report">
+              <span class="policy-number">{{ report.policyNumber }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let report">
+              <span class="description-text">{{ report.description }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>Amount</th>
+            <td mat-cell *matCellDef="let report">
+              <span class="amount">{{ formatCurrency(report.amount) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdDate">
+            <th mat-header-cell *matHeaderCellDef>Created Date</th>
+            <td mat-cell *matCellDef="let report">
+              <span class="date">{{ formatDate(report.createdDate) }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let report">
+              <div class="action-buttons">
+                <button mat-icon-button matTooltip="Edit" [routerLink]="['/loss-reports/edit', report.id]" class="edit-btn">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Delete" (click)="deleteReport(report.id)" class="delete-btn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="loading-container" *ngIf="isLoading">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Loading loss reports...</p>
+    </div>
+  </div>
+</div>
