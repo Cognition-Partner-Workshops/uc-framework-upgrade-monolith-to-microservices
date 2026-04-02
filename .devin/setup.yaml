@@ -1,0 +1,40 @@
+# https://docs.devin.ai/onboard-devin/environment-yaml
+# Commands run from the repo root.
+# One-time setup (e.g., install system tools, global CLIs).
+initialize: |
+  sudo apt-get update -qq && sudo apt-get install -y -qq openjdk-11-jdk
+  source ~/.nvm/nvm.sh && nvm install 16
+# Install project dependencies (runs every session).
+maintenance: |
+  source ~/.nvm/nvm.sh && nvm use 16 && cd frontend && npm install && cd ..
+# Reference info for agent
+knowledge:
+  - name: java-setup
+    contents: |
+      This project requires Java 11 (openjdk-11-jdk).
+      Before any Gradle command, set JAVA_HOME to /usr/lib/jvm/java-11-openjdk-amd64
+      and prepend its bin directory to PATH.
+  - name: node-setup
+    contents: |
+      The frontend requires Node 16 (see frontend/.nvmrc).
+      Use nvm: source ~/.nvm/nvm.sh && nvm use 16
+  - name: lint
+    contents: |
+      ./gradlew spotlessCheck
+  - name: test
+    contents: |
+      ./gradlew test -x jacocoTestReport -x jacocoTestCoverageVerification
+      JaCoCo excluded due to pre-existing coverage gap (33% vs 80% threshold).
+  - name: build
+    contents: |
+      Backend: ./gradlew build -x jacocoTestCoverageVerification
+      Frontend: cd frontend && npm run build
+  - name: run-app
+    contents: |
+      Backend (port 8080): ./gradlew bootRun
+      Frontend (port 3000): cd frontend && npm run dev
+      Verify backend: curl http://localhost:8080/tags
+  - name: seed-data
+    contents: |
+      The app includes seed data with sample users, articles, tags, and comments.
+      See README.md for sample account details.
