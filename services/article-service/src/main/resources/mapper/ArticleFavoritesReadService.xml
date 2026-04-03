@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="io.spring.articleservice.infrastructure.mybatis.readservice.ArticleFavoritesReadService">
+    <select id="isUserFavorite" resultType="boolean">
+        select count(1) > 0 from article_favorites
+        where user_id = #{userId} and article_id = #{articleId}
+    </select>
+    <select id="articleFavoriteCount" resultType="int">
+        select count(1) from article_favorites where article_id = #{articleId}
+    </select>
+    <select id="articlesFavoriteCount" resultType="io.spring.articleservice.application.data.ArticleFavoriteCount">
+        select article_id as id, count(1) as count
+        from article_favorites
+        where article_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        group by article_id
+    </select>
+    <select id="userFavorites" resultType="string">
+        select article_id from article_favorites
+        where article_id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and user_id = #{currentUser}
+    </select>
+</mapper>
