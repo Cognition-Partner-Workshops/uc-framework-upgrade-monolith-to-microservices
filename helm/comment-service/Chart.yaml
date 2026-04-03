@@ -1,0 +1,6 @@
+apiVersion: v2
+name: comment-service
+description: Comment Service - handles comments on articles
+type: application
+version: 0.1.0
+appVersion: "0.0.1-SNAPSHOT"

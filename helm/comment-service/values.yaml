@@ -1,0 +1,38 @@
+replicaCount: 1
+
+image:
+  repository: comment-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8083
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  path: /actuator/prometheus
+
+networkPolicy:
+  enabled: true
+
+env:
+  JWT_SECRET: "nRvyYC4soFxBdZ-F-5Nnzz5USXstR1YylsTd-mA0aKtI9HUlriGrtkf-TiuDapkLiUCogO3JOK7kwZisrHp6wA"
+  JWT_SESSION_TIME: "86400"
+  USER_SERVICE_URL: "http://user-service:8081"
