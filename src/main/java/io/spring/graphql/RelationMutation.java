@@ -6,55 +6,86 @@ import com.netflix.graphql.dgs.InputArgument;
 import io.spring.api.exception.ResourceNotFoundException;
 import io.spring.application.ProfileQueryService;
 import io.spring.application.data.ProfileData;
-import io.spring.core.user.FollowRelation;
 import io.spring.core.user.User;
-import io.spring.core.user.UserRepository;
 import io.spring.graphql.DgsConstants.MUTATION;
 import io.spring.graphql.exception.AuthenticationException;
 import io.spring.graphql.types.Profile;
 import io.spring.graphql.types.ProfilePayload;
-import lombok.AllArgsConstructor;
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.client.RestTemplate;
 
 @DgsComponent
-@AllArgsConstructor
 public class RelationMutation {
 
-  private UserRepository userRepository;
-  private ProfileQueryService profileQueryService;
+  private final ProfileQueryService profileQueryService;
+  private final RestTemplate restTemplate;
+  private final String userServiceUrl;
+  private final HttpServletRequest httpServletRequest;
+
+  public RelationMutation(
+      ProfileQueryService profileQueryService,
+      RestTemplate restTemplate,
+      @Value("${user-service.url}") String userServiceUrl,
+      HttpServletRequest httpServletRequest) {
+    this.profileQueryService = profileQueryService;
+    this.restTemplate = restTemplate;
+    this.userServiceUrl = userServiceUrl;
+    this.httpServletRequest = httpServletRequest;
+  }
 
   @DgsData(parentType = MUTATION.TYPE_NAME, field = MUTATION.FollowUser)
   public ProfilePayload follow(@InputArgument("username") String username) {
     User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
-    return userRepository
-        .findByUsername(username)
-        .map(
-            target -> {
-              FollowRelation followRelation = new FollowRelation(user.getId(), target.getId());
-              userRepository.saveRelation(followRelation);
-              Profile profile = buildProfile(username, user);
-              return ProfilePayload.newBuilder().profile(profile).build();
-            })
-        .orElseThrow(ResourceNotFoundException::new);
+
+    // Delegate follow operation to user-service
+    HttpHeaders headers = buildAuthHeaders();
+    HttpEntity<Void> authEntity = new HttpEntity<>(headers);
+    restTemplate.postForObject(
+        userServiceUrl + "/profiles/{username}/follow",
+        authEntity,
+        String.class,
+        username);
+
+    Profile profile = buildProfile(username, user);
+    return ProfilePayload.newBuilder().profile(profile).build();
   }
 
   @DgsData(parentType = MUTATION.TYPE_NAME, field = MUTATION.UnfollowUser)
   public ProfilePayload unfollow(@InputArgument("username") String username) {
     User user = SecurityUtil.getCurrentUser().orElseThrow(AuthenticationException::new);
-    User target =
-        userRepository.findByUsername(username).orElseThrow(ResourceNotFoundException::new);
-    return userRepository
-        .findRelation(user.getId(), target.getId())
-        .map(
-            relation -> {
-              userRepository.removeRelation(relation);
-              Profile profile = buildProfile(username, user);
-              return ProfilePayload.newBuilder().profile(profile).build();
-            })
-        .orElseThrow(ResourceNotFoundException::new);
+
+    // Delegate unfollow operation to user-service
+    HttpHeaders unfollowHeaders = buildAuthHeaders();
+    HttpEntity<Void> unfollowEntity = new HttpEntity<>(unfollowHeaders);
+    restTemplate.exchange(
+        userServiceUrl + "/profiles/{username}/follow",
+        HttpMethod.DELETE,
+        unfollowEntity,
+        String.class,
+        username);
+
+    Profile profile = buildProfile(username, user);
+    return ProfilePayload.newBuilder().profile(profile).build();
   }
 
-  private Profile buildProfile(@InputArgument("username") String username, User current) {
-    ProfileData profileData = profileQueryService.findByUsername(username, current).get();
+  private HttpHeaders buildAuthHeaders() {
+    HttpHeaders headers = new HttpHeaders();
+    String authHeader = httpServletRequest.getHeader("Authorization");
+    if (authHeader != null) {
+      headers.set("Authorization", authHeader);
+    }
+    return headers;
+  }
+
+  private Profile buildProfile(String username, User current) {
+    ProfileData profileData =
+        profileQueryService
+            .findByUsername(username, current)
+            .orElseThrow(ResourceNotFoundException::new);
     return Profile.newBuilder()
         .username(profileData.getUsername())
         .bio(profileData.getBio())
