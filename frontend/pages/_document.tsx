@@ -142,6 +142,34 @@ class MyDocument extends Document {
             }}
           />
           <link rel="manifest" href="/manifest.json" />
+          <script src="https://cdn.tailwindcss.com" />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+              tailwind.config = {
+                important: '.tw',
+                theme: {
+                  extend: {
+                    colors: {
+                      border: '#d6c9a8',
+                      input: '#d6c9a8',
+                      ring: '#b45309',
+                      background: '#fefbf4',
+                      foreground: '#451a03',
+                      primary: { DEFAULT: '#b45309', foreground: '#fffbeb' },
+                      secondary: { DEFAULT: '#fef3c7', foreground: '#451a03' },
+                      destructive: { DEFAULT: '#dc2626', foreground: '#fef2f2' },
+                      muted: { DEFAULT: '#fdf6e3', foreground: '#92400e' },
+                      accent: { DEFAULT: '#fef3c7', foreground: '#451a03' },
+                      card: { DEFAULT: '#fffdf7', foreground: '#451a03' },
+                    },
+                    borderRadius: { lg: '0.5rem', md: '0.375rem', sm: '0.25rem' },
+                  },
+                },
+              }
+            `,
+            }}
+          />
           <link rel="stylesheet" href="//demo.productionready.io/main.css" />
           <link
             rel="stylesheet"
