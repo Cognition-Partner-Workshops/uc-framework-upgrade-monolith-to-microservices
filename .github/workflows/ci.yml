@@ -60,16 +60,29 @@ jobs:
           restore-keys: |
             owasp-dc-
 
+      - name: Install OWASP Dependency-Check
+        run: |
+          DC_VERSION="10.0.4"
+          wget -q "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VERSION}/dependency-check-${DC_VERSION}-release.zip"
+          unzip -q "dependency-check-${DC_VERSION}-release.zip"
+
       - name: Run OWASP Dependency-Check (fail on CVSS >= 7.0)
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: 'uc-framework-upgrade-monolith-to-microservices'
-          path: '.'
-          format: 'HTML'
-          out: 'build/reports/dependency-check'
-          args: >
-            --failOnCVSS 7
-            --data ${{ github.workspace }}/owasp-dc-data
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          NVD_ARGS=""
+          if [ -n "$NVD_API_KEY" ]; then
+            NVD_ARGS="--nvdApiKey $NVD_API_KEY"
+          fi
+          ./dependency-check/bin/dependency-check.sh \
+            --project uc-framework-upgrade-monolith-to-microservices \
+            --scan . \
+            --format HTML \
+            --format JSON \
+            --out build/reports/dependency-check \
+            --failOnCVSS 7 \
+            --data ${{ github.workspace }}/owasp-dc-data \
+            $NVD_ARGS
 
       - name: Upload OWASP Dependency-Check report
         uses: actions/upload-artifact@v4
