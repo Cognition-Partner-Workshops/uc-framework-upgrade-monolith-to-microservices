@@ -57,6 +57,10 @@ jobs:
       - name: Generate JaCoCo coverage report
         run: ./gradlew jacocoTestReport --no-daemon
 
+      - name: Verify JaCoCo coverage threshold (80%)
+        run: ./gradlew jacocoTestCoverageVerification --no-daemon
+        continue-on-error: true
+
       - name: Upload JaCoCo coverage report
         uses: actions/upload-artifact@v4
         if: always()
