@@ -26,7 +26,6 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-            ~/.gradle/dependency-check-data
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
@@ -53,12 +52,30 @@ jobs:
           name: jacoco-coverage-report
           path: build/reports/jacoco/
 
+      - name: Cache OWASP Dependency-Check data
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/owasp-dc-data
+          key: owasp-dc-${{ github.run_id }}
+          restore-keys: |
+            owasp-dc-
+
       - name: Run OWASP Dependency-Check (fail on CVSS >= 7.0)
-        run: ./gradlew dependencyCheckAnalyze --no-daemon
+        uses: dependency-check/Dependency-Check_Action@main
+        env:
+          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11*/x64
+        with:
+          project: 'uc-framework-upgrade-monolith-to-microservices'
+          path: '.'
+          format: 'HTML'
+          out: 'build/reports/dependency-check'
+          args: >
+            --failOnCVSS 7
+            --data ${{ github.workspace }}/owasp-dc-data
 
       - name: Upload OWASP Dependency-Check report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dependency-check-report
-          path: build/reports/
+          path: build/reports/dependency-check/
