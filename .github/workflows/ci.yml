@@ -201,6 +201,7 @@ jobs:
 
       - name: Run OWASP Dependency-Check
         run: |
+          mkdir -p build/reports/owasp
           ./dependency-check/bin/dependency-check.sh \
             --project "uc-framework-upgrade-monolith-to-microservices" \
             --scan build/dependency-scan \
