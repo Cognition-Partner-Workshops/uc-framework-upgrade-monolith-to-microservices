@@ -70,9 +70,12 @@ jobs:
       - name: Run OWASP Dependency-Check
         run: |
           mkdir -p reports
-          NVD_ARGS=""
+          DC_ARGS=""
           if [ -n "$NVD_API_KEY" ]; then
-            NVD_ARGS="--nvdApiKey $NVD_API_KEY"
+            DC_ARGS="--nvdApiKey $NVD_API_KEY"
+          else
+            echo "::warning::NVD_API_KEY not configured. Running with --noupdate. Add NVD_API_KEY secret for full vulnerability scanning."
+            DC_ARGS="--noupdate"
           fi
           ./dependency-check/bin/dependency-check.sh \
             --project "uc-framework-upgrade-monolith-to-microservices" \
@@ -82,7 +85,7 @@ jobs:
             --failOnCVSS 7 \
             --out reports \
             --data ~/.dependency-check/data \
-            $NVD_ARGS
+            $DC_ARGS
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
