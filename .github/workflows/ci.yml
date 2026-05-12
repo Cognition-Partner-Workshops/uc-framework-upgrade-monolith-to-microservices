@@ -52,15 +52,38 @@ jobs:
           name: jacoco-report
           path: build/reports/jacoco/test/html/
 
-      - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        env:
-          JAVA_HOME: /opt/java/openjdk
+      - name: Cache OWASP Dependency-Check data
+        uses: actions/cache@v4
         with:
-          project: 'uc-framework-upgrade-monolith-to-microservices'
-          path: '.'
-          format: 'HTML'
-          args: '--failOnCVSS 7'
+          path: ~/.dependency-check/data
+          key: ${{ runner.os }}-owasp-dc-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-owasp-dc-
+
+      - name: Install OWASP Dependency-Check
+        run: |
+          DC_VERSION="10.0.4"
+          wget -q "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VERSION}/dependency-check-${DC_VERSION}-release.zip"
+          unzip -q "dependency-check-${DC_VERSION}-release.zip"
+          chmod +x dependency-check/bin/dependency-check.sh
+
+      - name: Run OWASP Dependency-Check
+        run: |
+          NVD_ARGS=""
+          if [ -n "$NVD_API_KEY" ]; then
+            NVD_ARGS="--nvdApiKey $NVD_API_KEY"
+          fi
+          ./dependency-check/bin/dependency-check.sh \
+            --project "uc-framework-upgrade-monolith-to-microservices" \
+            --scan . \
+            --format HTML \
+            --format JSON \
+            --failOnCVSS 7 \
+            --out reports/ \
+            --data ~/.dependency-check/data \
+            $NVD_ARGS
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
       - name: Upload OWASP Dependency-Check report
         uses: actions/upload-artifact@v4
