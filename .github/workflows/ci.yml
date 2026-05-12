@@ -53,11 +53,20 @@ jobs:
           path: build/reports/jacoco/test/html/
 
       - name: Run OWASP Dependency-Check
-        run: ./gradlew dependencyCheckAnalyze --no-daemon
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'uc-framework-upgrade-monolith-to-microservices'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --failOnCVSS 7
+            --enableExperimental
+        env:
+          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11*/x64
 
       - name: Upload OWASP Dependency-Check report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dependency-check-report
-          path: build/reports/dependency-check-report.*
+          path: reports/
