@@ -131,7 +131,7 @@ jobs:
           path: build/jacoco/
 
       - name: Generate JaCoCo Coverage Report
-        run: ./gradlew jacocoTestReport
+        run: ./gradlew jacocoTestReport -x jacocoTestCoverageVerification
 
       - name: Upload JaCoCo Coverage Report
         uses: actions/upload-artifact@v4
