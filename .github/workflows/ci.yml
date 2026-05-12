@@ -91,6 +91,10 @@ jobs:
 
       - name: OWASP Dependency-Check
         run: |
+          EXTRA_ARGS=""
+          if [ -n "$NVD_API_KEY" ]; then
+            EXTRA_ARGS="--nvdApiKey $NVD_API_KEY"
+          fi
           ./dependency-check/bin/dependency-check.sh \
             --project "uc-framework-upgrade-monolith-to-microservices" \
             --scan . \
@@ -98,7 +102,10 @@ jobs:
             --format JSON \
             --failOnCVSS 7 \
             --out build/reports/dependency-check \
-            --data ~/.dependency-check
+            --data ~/.dependency-check \
+            $EXTRA_ARGS
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
       - name: Upload Dependency-Check report
         uses: actions/upload-artifact@v4
