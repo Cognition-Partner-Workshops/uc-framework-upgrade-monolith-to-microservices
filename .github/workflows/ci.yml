@@ -52,7 +52,18 @@ jobs:
           name: jacoco-report
           path: build/reports/jacoco/test/html/
 
+      - name: Check NVD API Key availability
+        id: nvd_check
+        run: |
+          if [ -n "${{ secrets.NVD_API_KEY }}" ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "::warning::NVD_API_KEY secret not configured. OWASP Dependency-Check requires an NVD API key to download vulnerability data. Get a free key at https://nvd.nist.gov/developers/request-an-api-key and add it as a repository secret named NVD_API_KEY."
+          fi
+
       - name: Cache OWASP Dependency-Check data
+        if: steps.nvd_check.outputs.available == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.dependency-check/data
@@ -61,6 +72,7 @@ jobs:
             ${{ runner.os }}-owasp-dc-
 
       - name: Install OWASP Dependency-Check
+        if: steps.nvd_check.outputs.available == 'true'
         run: |
           DC_VERSION="10.0.4"
           wget -q "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VERSION}/dependency-check-${DC_VERSION}-release.zip"
@@ -68,15 +80,9 @@ jobs:
           chmod +x dependency-check/bin/dependency-check.sh
 
       - name: Run OWASP Dependency-Check
+        if: steps.nvd_check.outputs.available == 'true'
         run: |
           mkdir -p reports
-          DC_ARGS=""
-          if [ -n "$NVD_API_KEY" ]; then
-            DC_ARGS="--nvdApiKey $NVD_API_KEY"
-          else
-            echo "::warning::NVD_API_KEY not configured. Running with --noupdate. Add NVD_API_KEY secret for full vulnerability scanning."
-            DC_ARGS="--noupdate"
-          fi
           ./dependency-check/bin/dependency-check.sh \
             --project "uc-framework-upgrade-monolith-to-microservices" \
             --scan . \
@@ -85,13 +91,11 @@ jobs:
             --failOnCVSS 7 \
             --out reports \
             --data ~/.dependency-check/data \
-            $DC_ARGS
-        env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+            --nvdApiKey "${{ secrets.NVD_API_KEY }}"
 
       - name: Upload OWASP Dependency-Check report
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.nvd_check.outputs.available == 'true'
         with:
           name: dependency-check-report
           path: reports/
