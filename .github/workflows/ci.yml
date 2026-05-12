@@ -69,20 +69,40 @@ jobs:
             build/reports/tests/unitTest/
             build/reports/tests/integrationTest/
 
-      - name: OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        id: depcheck
-        env:
-          JAVA_HOME: /opt/java/openjdk
+      - name: Set up JDK 17 for OWASP Dependency-Check
+        uses: actions/setup-java@v4
         with:
-          project: 'uc-framework-upgrade-monolith-to-microservices'
-          path: '.'
-          format: 'HTML'
-          args: '--failOnCVSS 7'
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache OWASP Dependency-Check data
+        uses: actions/cache@v4
+        with:
+          path: ~/.dependency-check
+          key: ${{ runner.os }}-owasp-dc-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-owasp-dc-
+
+      - name: Install OWASP Dependency-Check
+        run: |
+          DC_VERSION="12.1.0"
+          curl -sL "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VERSION}/dependency-check-${DC_VERSION}-release.zip" -o dc.zip
+          unzip -q dc.zip
+
+      - name: OWASP Dependency-Check
+        run: |
+          ./dependency-check/bin/dependency-check.sh \
+            --project "uc-framework-upgrade-monolith-to-microservices" \
+            --scan . \
+            --format HTML \
+            --format JSON \
+            --failOnCVSS 7 \
+            --out build/reports/dependency-check \
+            --data ~/.dependency-check
 
       - name: Upload Dependency-Check report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dependency-check-report
-          path: reports/
+          path: build/reports/dependency-check/
