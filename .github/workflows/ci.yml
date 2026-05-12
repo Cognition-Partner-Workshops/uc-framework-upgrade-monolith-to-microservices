@@ -190,24 +190,30 @@ jobs:
       - name: Copy runtime dependencies for scanning
         run: |
           mkdir -p build/dependency-scan
-          ./gradlew dependencies --configuration runtimeClasspath -q 2>/dev/null || true
           cp build/libs/*.jar build/dependency-scan/ 2>/dev/null || true
           find ~/.gradle/caches/modules-2/files-2.1 -name "*.jar" -exec cp {} build/dependency-scan/ \; 2>/dev/null || true
 
+      - name: Install OWASP Dependency-Check
+        run: |
+          DC_VERSION=10.0.3
+          wget -q "https://github.com/jeremylong/DependencyCheck/releases/download/v${DC_VERSION}/dependency-check-${DC_VERSION}-release.zip"
+          unzip -q "dependency-check-${DC_VERSION}-release.zip"
+
       - name: Run OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: uc-framework-upgrade-monolith-to-microservices
-          path: build/dependency-scan
-          format: HTML
-          args: >-
-            --failOnCVSS 7
-            --disableAssembly
+        run: |
+          ./dependency-check/bin/dependency-check.sh \
+            --project "uc-framework-upgrade-monolith-to-microservices" \
+            --scan build/dependency-scan \
+            --format HTML \
+            --format JSON \
+            --failOnCVSS 7 \
+            --disableAssembly \
+            --out build/reports/owasp
 
       - name: Upload OWASP Dependency-Check report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: owasp-dependency-check-report
-          path: reports/
+          path: build/reports/owasp/
           retention-days: 14
