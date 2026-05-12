@@ -58,11 +58,7 @@ jobs:
           project: 'uc-framework-upgrade-monolith-to-microservices'
           path: '.'
           format: 'HTML'
-          args: >
-            --failOnCVSS 7
-            --enableExperimental
-        env:
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11*/x64
+          args: '--failOnCVSS 7'
 
       - name: Upload OWASP Dependency-Check report
         uses: actions/upload-artifact@v4
