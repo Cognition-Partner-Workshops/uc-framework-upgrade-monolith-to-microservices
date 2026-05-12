@@ -62,8 +62,6 @@ jobs:
 
       - name: Run OWASP Dependency-Check (fail on CVSS >= 7.0)
         uses: dependency-check/Dependency-Check_Action@main
-        env:
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11*/x64
         with:
           project: 'uc-framework-upgrade-monolith-to-microservices'
           path: '.'
