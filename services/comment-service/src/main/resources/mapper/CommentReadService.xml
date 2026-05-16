@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="io.spring.commentservice.infrastructure.mybatis.readservice.CommentReadService">
+    <sql id="selectCommentData">
+        SELECT
+        C.id commentId,
+        C.body commentBody,
+        C.created_at commentCreatedAt,
+        C.article_id commentArticleId,
+        C.user_id commentUserId
+        from comments C
+    </sql>
+
+    <resultMap id="commentData" type="io.spring.commentservice.application.data.CommentData">
+        <id column="commentId" property="id"/>
+        <result column="commentBody" property="body"/>
+        <result column="commentCreatedAt" property="createdAt"/>
+        <result column="commentCreatedAt" property="updatedAt"/>
+        <result column="commentArticleId" property="articleId"/>
+        <result column="commentUserId" property="userId"/>
+    </resultMap>
+
+    <select id="findById" resultMap="commentData">
+        <include refid="selectCommentData"/>
+        where C.id = #{id}
+    </select>
+    <select id="findByArticleId" resultMap="commentData">
+        <include refid="selectCommentData"/>
+        where C.article_id = #{articleId}
+    </select>
+</mapper>
