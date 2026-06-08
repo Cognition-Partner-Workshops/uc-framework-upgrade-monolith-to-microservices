@@ -4,6 +4,7 @@ import io.spring.core.article.Article;
 import io.spring.core.article.ArticleRepository;
 import io.spring.core.article.Tag;
 import io.spring.infrastructure.mybatis.mapper.ArticleMapper;
+import io.spring.infrastructure.service.TagServiceClient;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,9 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class MyBatisArticleRepository implements ArticleRepository {
   private ArticleMapper articleMapper;
+  private TagServiceClient tagServiceClient;
 
-  public MyBatisArticleRepository(ArticleMapper articleMapper) {
+  public MyBatisArticleRepository(ArticleMapper articleMapper, TagServiceClient tagServiceClient) {
     this.articleMapper = articleMapper;
+    this.tagServiceClient = tagServiceClient;
   }
 
   @Override
@@ -28,6 +31,8 @@ public class MyBatisArticleRepository implements ArticleRepository {
 
   private void createNew(Article article) {
     for (Tag tag : article.getTags()) {
+      // Dual-write: persist tags locally so monolith read queries (JOINs) still work,
+      // and also write to the Tags microservice as the future source of truth.
       Tag targetTag =
           Optional.ofNullable(articleMapper.findTag(tag.getName()))
               .orElseGet(
@@ -36,6 +41,8 @@ public class MyBatisArticleRepository implements ArticleRepository {
                     return tag;
                   });
       articleMapper.insertArticleTagRelation(article.getId(), targetTag.getId());
+      tagServiceClient.findOrCreateTag(tag.getName());
+      tagServiceClient.createArticleTagRelation(article.getId(), targetTag.getId());
     }
     articleMapper.insert(article);
   }
