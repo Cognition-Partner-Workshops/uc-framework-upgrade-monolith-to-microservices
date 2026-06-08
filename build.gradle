@@ -26,7 +26,7 @@ jacoco {
 }
 
 jacocoTestReport {
-    dependsOn test
+    executionData.setFrom(fileTree(buildDir).include('jacoco/*.exec'))
     reports {
         xml.required = true
         html.required = true
@@ -94,6 +94,22 @@ tasks.named('test') {
 	// Exclude Selenium tests from JUnit test task
 	exclude 'io/spring/selenium/**'
 	finalizedBy jacocoTestReport
+}
+
+tasks.register('unitTest', Test) {
+	description = 'Run unit tests'
+	group = 'verification'
+	useJUnitPlatform()
+	include 'io/spring/core/**'
+}
+
+tasks.register('integrationTest', Test) {
+	description = 'Run integration tests'
+	group = 'verification'
+	useJUnitPlatform()
+	include 'io/spring/api/**', 'io/spring/infrastructure/**', 'io/spring/application/**'
+	include 'io/spring/RealworldApplicationTests*'
+	exclude 'io/spring/selenium/**'
 }
 
 // Separate task for Selenium E2E tests using TestNG
